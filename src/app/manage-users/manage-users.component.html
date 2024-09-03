@@ -1,0 +1,81 @@
+<div class="bg-gray-700 min-h-screen p-6">
+  <h2 class="text-2xl font-bold text-white mb-4">Manage Users</h2>
+  <div class="space-y-4">
+    <div
+      *ngFor="let user of users"
+      class="bg-gray-800 rounded-lg p-4 shadow-md flex justify-between items-center"
+    >
+      <div>
+        <h3 class="text-xl font-semibold text-white">{{ user.name }}</h3>
+        <p class="text-gray-400">{{ user.bio }}</p>
+        <div class="mt-2">
+          <span
+            *ngIf="user.isGroupAdmin"
+            class="bg-green-500 text-white text-xs px-2 py-1 rounded-full mr-2"
+            >Group Admin</span
+          >
+          <span
+            *ngIf="user.isSuperAdmin"
+            class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full"
+            >Super Admin</span
+          >
+        </div>
+        <p class="text-gray-400 mt-1">
+          Groups Created: {{ user.groupsCreated }}
+        </p>
+      </div>
+      <div class="relative">
+        <button
+          class="text-white focus:outline-none"
+          (click)="user.showMenu = !user.showMenu"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v.01M12 12v.01M12 18v.01"
+            />
+          </svg>
+        </button>
+        <div
+          *ngIf="user.showMenu"
+          class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20"
+        >
+          <ul class="py-1">
+            <li>
+              <a
+                (click)="promoteToGroupAdmin(user)"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Promote to Group Admin
+              </a>
+            </li>
+            <li>
+              <a
+                (click)="promoteToSuperAdmin(user)"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Promote to Super Admin
+              </a>
+            </li>
+            <li>
+              <a
+                (click)="deleteUser(user)"
+                class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              >
+                Delete User
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

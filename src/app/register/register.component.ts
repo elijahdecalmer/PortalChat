@@ -9,7 +9,6 @@ import {
 } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { AuthService } from '../auth.service';
 
 const httpOptions = {
   headers: new HttpHeaders({
@@ -20,57 +19,48 @@ const httpOptions = {
 const BACKEND_URL = 'http://localhost:3000';
 
 @Component({
-  selector: 'app-login',
+  selector: 'app-register',
   standalone: true,
   imports: [FormsModule, CommonModule, HttpClientModule],
-  templateUrl: './login.component.html',
+  templateUrl: './register.component.html',
 })
-export class LoginComponent {
+export class RegisterComponent {
   username: string;
   password: string;
   errorMessage: string;
+  successMessage: string;
 
-  constructor(
-    private router: Router,
-    private httpClient: HttpClient,
-    private authService: AuthService
-  ) {
+  constructor(private router: Router, private httpClient: HttpClient) {
     this.username = '';
     this.password = '';
     this.errorMessage = '';
+    this.successMessage = '';
   }
 
   onSubmit(event: Event) {
     event.preventDefault();
     this.errorMessage = '';
+    this.successMessage = '';
 
     this.httpClient
-      .post<{
-        valid: boolean;
-        username: string;
-        email: string;
-        id: number;
-        roles: string[];
-        groups?: string[];
-      }>(
-        `${BACKEND_URL}/api/auth`,
+      .post<{ success: boolean; message: string }>(
+        `${BACKEND_URL}/api/register`,
         { username: this.username, password: this.password },
         httpOptions
       )
       .pipe(
         catchError((error) => {
           this.errorMessage =
-            'Login failed. Please try again. Error message: ' + error.message;
+            'Registration failed. Please try again. Error message: ' +
+            error.message;
           return of(null);
         })
       )
       .subscribe((response: any) => {
-        if (response?.valid) {
-          const { password, ...userWithoutPassword } = response;
-          this.authService.login(userWithoutPassword);
-          this.router.navigate(['/browsegroups']);
+        if (response?.success) {
+          this.successMessage = 'Registration successful!';
         } else {
-          this.errorMessage = response?.message || 'Invalid credentials.';
+          this.errorMessage = response?.message || 'Registration failed.';
         }
       });
   }

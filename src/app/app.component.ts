@@ -1,9 +1,16 @@
-import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink, Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import {
+  RouterOutlet,
+  RouterLink,
+  Router,
+  NavigationEnd,
+} from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
-import { FormsModule } from '@angular/forms'; // Import FormsModule
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { AuthService } from './auth.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -17,13 +24,33 @@ import { CommonModule } from '@angular/common';
     CommonModule,
   ],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'], // Corrected from styleUrl to styleUrls
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'PortalChat';
   isSidebarOpen = false;
+  groups: any[] = [];
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
+
+  ngOnInit() {
+    this.authService.user.subscribe((user) => {
+      if (user) {
+        this.groups = user.groups || [];
+      } else {
+        this.groups = [];
+      }
+    });
+
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => {
+        const currentUrl = this.router.url;
+
+        if (!this.authService.user && currentUrl !== '/register') {
+          this.router.navigate(['/login']);
+        }
+      });
+  }
 
   openSidebar() {
     this.isSidebarOpen = true;
@@ -35,5 +62,10 @@ export class AppComponent {
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  signOut() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

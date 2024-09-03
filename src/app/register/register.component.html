@@ -11,13 +11,20 @@
       <h2
         class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900"
       >
-        Sign in to Portal Chat
+        Register for Portal Chat
       </h2>
     </div>
     <div *ngIf="errorMessage" class="text-red-600" role="alert">
       {{ errorMessage }}
     </div>
-    <form class="space-y-2" (ngSubmit)="onSubmit($event)" #loginForm="ngForm">
+    <div *ngIf="successMessage" class="text-green-600" role="alert">
+      {{ successMessage }}
+    </div>
+    <form
+      class="space-y-2"
+      (ngSubmit)="onSubmit($event)"
+      #registerForm="ngForm"
+    >
       <div class="relative -space-y-px rounded-md shadow-sm">
         <div
           class="pointer-events-none absolute inset-0 z-10 rounded-md ring-1 ring-inset ring-gray-300"
@@ -26,7 +33,7 @@
           <label for="username" class="sr-only">Username</label>
           <input
             id="username"
-            name="email"
+            name="username"
             type="text"
             required
             [(ngModel)]="username"
@@ -40,7 +47,6 @@
             id="password"
             name="password"
             type="password"
-            autocomplete="current-password"
             required
             [(ngModel)]="password"
             class="relative block w-full rounded-b-md border-0 p-2 text-gray-900 ring-1 ring-inset ring-gray-100 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -54,17 +60,17 @@
           type="submit"
           class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
         >
-          Sign in
+          Register
         </button>
       </div>
     </form>
 
     <p class="text-center text-sm leading-6 text-gray-500">
-      Not a member?
+      Already have an account?
       <a
-        href="/register"
+        href="/login"
         class="font-semibold text-indigo-600 hover:text-indigo-500"
-        >Sign Up</a
+        >Sign In</a
       >
     </p>
   </div>
