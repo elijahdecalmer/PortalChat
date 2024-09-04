@@ -19,11 +19,11 @@
             class="flex justify-between items-center"
           >
             <span class="text-white">
-              {{ user.username }}
+              {{ user }}
               <span
-                *ngIf="user.roles.includes('Group Admin')"
-                class="text-xs bg-green-500 text-white px-2 py-1 rounded-full ml-2"
-                >Admin</span
+                *ngIf="group.admin === user.toString()"
+                class="text-xs bg-green-700 text-white px-2 py-1 rounded-full ml-2"
+                >Admin of this group</span
               >
             </span>
             <div>
@@ -55,7 +55,7 @@
             <span class="text-white">{{ user.username }}</span>
             <div>
               <button
-                (click)="approveUser(group, user)"
+                (click)="approveUser(group, user.username)"
                 class="text-sm text-green-500 hover:text-green-700"
               >
                 Approve
@@ -78,16 +78,33 @@
       <ul class="mt-2 space-y-1">
         <li
           *ngFor="let user of allUsers"
-          class="flex justify-between items-center"
+          class="flex justify-between gap-2 items-center"
         >
-          <span class="text-white">
-            {{ user.username }}
-            <span
-              *ngIf="user.reported"
-              class="text-xs bg-red-500 text-white px-2 py-1 rounded-full ml-2"
-              >Reported</span
+          <div class="flex items-center">
+            <span class="text-white">
+              {{ user.username }}
+              <span
+                *ngIf="user.reported"
+                class="text-xs bg-red-500 text-white px-2 py-1 rounded-full ml-2"
+                >Reported</span
+              >
+            </span>
+            <div
+              *ngIf="
+                user.roles.includes('Group Admin') &&
+                !user.roles.includes('Super Admin')
+              "
+              class="text-xs font-bold text-blue-800 bg-blue-400 hover:text-blue-700 p-2 py-1 rounded-full ml-2"
             >
-          </span>
+              Group Admin
+            </div>
+            <div
+              *ngIf="user.roles.includes('Super Admin')"
+              class="text-xs font-bold text-orange-800 bg-orange-400 hover:text-orange-700 p-2 py-1 rounded-full ml-2"
+            >
+              Super Admin
+            </div>
+          </div>
           <div>
             <button
               *ngIf="!user.roles.includes('Super Admin')"
@@ -99,12 +116,13 @@
             <button
               *ngIf="
                 !user.roles.includes('Group Admin') &&
-                !user.roles.includes('Super Admin')
+                !user.roles.includes('Super Admin') &&
+                user.roles.includes('Group Admin Request')
               "
               (click)="promoteToGroupAdmin(user)"
               class="text-sm text-green-500 hover:text-green-700 ml-2"
             >
-              Promote to Group Admin
+              Approve Promotion to Group Admin
             </button>
             <button
               *ngIf="

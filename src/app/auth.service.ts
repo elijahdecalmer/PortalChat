@@ -67,15 +67,24 @@ export class AuthService {
   }
 
   getGroups(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/api/groups`).pipe(
-      tap((response: any) => {
-        console.log('Groups loaded successfully');
-      })
-    );
+    return this.http
+      .get(`${this.baseUrl}/api/groups`)
+      .pipe(tap((response: any) => {}));
   }
 
   getAllUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.baseUrl}/api/users`);
+  }
+
+  requestGroupAdminPrivileges(userId: number): Observable<any> {
+    return this.http
+      .post(`${this.baseUrl}/api/users/requestGroupAdmin`, { userId })
+      .pipe(
+        tap((response: any) => {
+          this.fetchUserData().subscribe();
+          console.log('Group Admin privileges requested');
+        })
+      );
   }
 
   promoteUserToGroupAdmin(userId: number): Observable<any> {
@@ -99,6 +108,8 @@ export class AuthService {
   }
 
   removeUserFromGroup(groupId: number, userId: number): Observable<any> {
+    console.log('GroupId:', groupId);
+    console.log('UserId:', userId);
     return this.http
       .post(`${this.baseUrl}/api/groups/${groupId}/removeUser`, { userId })
       .pipe(
@@ -126,6 +137,56 @@ export class AuthService {
     return of(null);
   }
 
+  sendMessage(
+    groupId: number,
+    channelId: string,
+    message: string
+  ): Observable<any> {
+    const currentUser = this.currentUserValue;
+    if (currentUser) {
+      return this.http
+        .post(
+          `${this.baseUrl}/api/groups/${groupId}/channels/${channelId}/message`,
+          {
+            userId: currentUser.id,
+            message,
+          }
+        )
+        .pipe(
+          tap((response: any) => {
+            console.log('Message sent successfully:', response);
+          }),
+          catchError((error) => {
+            console.error('Failed to send message:', error);
+            return of(null); // Gracefully handle error
+          })
+        );
+    }
+    return of(null);
+  }
+
+  createGroup(groupName: string): Observable<any> {
+    const currentUser = this.currentUserValue;
+    if (currentUser) {
+      return this.http
+        .post(`${this.baseUrl}/api/groups/create`, {
+          userId: currentUser.id,
+          groupName,
+        })
+        .pipe(
+          tap((response: any) => {
+            console.log('Group created successfully:', response);
+            this.fetchUserData().subscribe();
+          }),
+          catchError((error) => {
+            console.error('Failed to create group:', error);
+            return of(null);
+          })
+        );
+    }
+    return of(null);
+  }
+
   requestAccessToGroup(groupId: number, groupName: string): Observable<any> {
     const currentUser = this.currentUserValue;
     console.log('Current user:', currentUser);
@@ -141,6 +202,36 @@ export class AuthService {
             this.fetchUserData().subscribe();
             console.log(`Requested access to group: ${groupName}`);
             console.log('response', response);
+          })
+        );
+    }
+    return of(null);
+  }
+
+  approveUserForGroup(groupId: number, userId: any): Observable<any> {
+    return this.http
+      .post(`${this.baseUrl}/api/groups/${groupId}/approveUser`, { userId })
+      .pipe(
+        tap((response: any) => {
+          console.log('User approved for group:', response);
+        }),
+        catchError((error) => {
+          console.error('Error approving user for group:', error);
+          return of(null); // Handle error gracefully
+        })
+      );
+  }
+
+  deleteAnotherAccount(userId: number): Observable<any> {
+    const currentUser = this.currentUserValue;
+    if (currentUser.roles.includes('Super Admin')) {
+      return this.http
+        .post(`${this.baseUrl}/api/account/delete`, {
+          userId,
+        })
+        .pipe(
+          tap((response: any) => {
+            this.fetchUserData().subscribe();
           })
         );
     }
