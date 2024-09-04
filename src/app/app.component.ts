@@ -34,8 +34,9 @@ export class AppComponent implements OnInit {
   isSidebarOpen = false;
   groups: any[] = [];
   isSuperAdmin = false;
+  isGroupAdmin = false;
   isLoggedIn = false;
-  userSession: any = null; // Variable to store user session data
+  userSession: any = null;
 
   constructor(private router: Router, private authService: AuthService) {}
 
@@ -48,6 +49,7 @@ export class AppComponent implements OnInit {
         this.groups = user.groups || [];
         console.log('User groups:', this.groups);
         this.isSuperAdmin = user.roles?.includes('Super Admin') || false;
+        this.isGroupAdmin = user.roles?.includes('Group Admin') || false;
       } else {
         this.groups = [];
         this.isSuperAdmin = false;
