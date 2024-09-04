@@ -9,10 +9,17 @@
       <p class="text-gray-400">Users: {{ group.users }}</p>
       <p class="text-gray-400">Channels: {{ group.channels }}</p>
       <button
-        (click)="requestAccess(group.title)"
+        [disabled]="isAccessRequested(group) || isMember(group)"
+        (click)="requestAccess(group)"
         class="bg-blue-500 text-white rounded-md px-4 py-2 mt-4 hover:bg-blue-600 w-full"
       >
-        Request Access
+        {{
+          isMember(group)
+            ? "Currently a member"
+            : isAccessRequested(group)
+            ? "Access requested..."
+            : "Request Access"
+        }}
       </button>
     </div>
 

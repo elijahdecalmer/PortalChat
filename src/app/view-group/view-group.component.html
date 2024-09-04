@@ -1,5 +1,13 @@
 <div class="bg-gray-700 min-h-screen p-6">
-  <h2 class="text-2xl font-bold text-white mb-4">Group {{ groupId }}</h2>
+  <div class="flex justify-between">
+    <h2 class="text-2xl font-bold text-white mb-4">Group {{ groupId }}</h2>
+    <button
+      (click)="leaveGroup()"
+      class="border-2 border-white rounded-md p-2 text-white"
+    >
+      <p>Leave Group</p>
+    </button>
+  </div>
   <h3 class="text-xl font-semibold text-white mb-2">Channels</h3>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
     <div

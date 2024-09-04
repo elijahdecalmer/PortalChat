@@ -1,22 +1,28 @@
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient, HttpClientModule } from '@angular/common/http'; // Import HttpClient
+import { tap } from 'rxjs/operators';
+
 interface User {
   username: string;
   email: string;
   groups?: any[];
+  id: number;
+  roles: string[];
 }
-
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private userSubject = new BehaviorSubject<User | null>(null);
-  public user: Observable<any> = this.userSubject.asObservable();
+  public user: Observable<User | null> = this.userSubject.asObservable();
+  private baseUrl = 'http://localhost:3000';
 
-  constructor() {
+  constructor(private http: HttpClient) {
+    // Inject HttpClient
     const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
-    this.userSubject = new BehaviorSubject<any>(storedUser);
+    this.userSubject = new BehaviorSubject<User | null>(storedUser);
     this.user = this.userSubject.asObservable();
   }
 
@@ -30,7 +36,28 @@ export class AuthService {
     this.userSubject.next(null);
   }
 
-  public get currentUserValue(): any {
+  public get currentUserValue(): User | null {
     return this.userSubject.value;
+  }
+
+  requestGroupAccess(groupId: number, groupName: string): Observable<any> {
+    const currentUser = this.currentUserValue;
+    if (currentUser) {
+      return this.http
+        .post(`${this.baseUrl}/api/groups/requestAccess`, {
+          userId: currentUser.id,
+          groupId: groupId,
+          groupName: groupName,
+        })
+        .pipe(
+          tap((response: any) => {
+            if (response.valid) {
+              sessionStorage.setItem('user', JSON.stringify(response.user));
+              this.userSubject.next(response.user);
+            }
+          })
+        );
+    }
+    return new Observable();
   }
 }

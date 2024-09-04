@@ -27,12 +27,14 @@ const BACKEND_URL = 'http://localhost:3000';
 export class RegisterComponent {
   username: string;
   password: string;
+  email: string;
   errorMessage: string;
   successMessage: string;
 
   constructor(private router: Router, private httpClient: HttpClient) {
     this.username = '';
     this.password = '';
+    this.email = '';
     this.errorMessage = '';
     this.successMessage = '';
   }
@@ -45,7 +47,7 @@ export class RegisterComponent {
     this.httpClient
       .post<{ success: boolean; message: string }>(
         `${BACKEND_URL}/api/register`,
-        { username: this.username, password: this.password },
+        { username: this.username, password: this.password, email: this.email },
         httpOptions
       )
       .pipe(
@@ -57,7 +59,7 @@ export class RegisterComponent {
         })
       )
       .subscribe((response: any) => {
-        if (response?.success) {
+        if (response?.valid) {
           this.successMessage = 'Registration successful!';
         } else {
           this.errorMessage = response?.message || 'Registration failed.';

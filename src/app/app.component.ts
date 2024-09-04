@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './auth.service';
 import { filter } from 'rxjs/operators';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
@@ -22,6 +23,7 @@ import { filter } from 'rxjs/operators';
     HomeComponent,
     FormsModule,
     CommonModule,
+    HttpClientModule,
   ],
   templateUrl: './app.component.html',
 })
@@ -29,15 +31,21 @@ export class AppComponent implements OnInit {
   title = 'PortalChat';
   isSidebarOpen = false;
   groups: any[] = [];
+  isSuperAdmin = false;
+  isLoggedIn = false;
 
   constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
     this.authService.user.subscribe((user) => {
       if (user) {
+        this.isLoggedIn = true;
         this.groups = user.groups || [];
+        this.isSuperAdmin = user.roles.includes('Super Admin');
       } else {
         this.groups = [];
+        this.isSuperAdmin = false;
+        this.isLoggedIn = false;
       }
     });
 

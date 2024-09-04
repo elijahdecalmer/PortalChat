@@ -16,7 +16,7 @@ var http = require("http").Server(app);
 
 app.use(express.static(__dirname + "/www"));
 
-const users = [
+let users = [
   {
     username: "super",
     email: "super@gmail.com",
@@ -27,14 +27,31 @@ const users = [
       {
         id: 1,
         name: "Group 1",
+        approved: true,
       },
       {
         id: 2,
         name: "Group 2",
+        approved: true,
       },
       {
         id: 3,
         name: "Group 3",
+        approved: true,
+      },
+    ],
+  },
+  {
+    username: "test",
+    email: "test@gmail.com",
+    password: "test",
+    id: 1,
+    roles: ["User"],
+    groups: [
+      {
+        id: 1,
+        name: "Group 1",
+        approved: true,
       },
     ],
   },
@@ -51,6 +68,53 @@ app.post("/api/auth", function (req, res) {
     res.send(customer);
   } else {
     res.send({ valid: false });
+  }
+});
+
+app.post("/api/register", function (req, res) {
+  console.log("Request body: ", req.body);
+  const isUsernameTaken = users.find(
+    (user) => user.username === req.body.username
+  );
+  const isEmailTaken = users.find((user) => user.email === req.body.email);
+  if (isUsernameTaken) {
+    res.status(400).send({ valid: false, message: "Username already exists" });
+  } else if (isEmailTaken) {
+    res.status(400).send({ valid: false, message: "Email already exists" });
+  } else if (
+    users
+      .find((user) => user.id === req.body.userId)
+      .groups.find((group) => group.id === req.body.groupId)
+  ) {
+    res.status(400).send({
+      valid: false,
+      message: "User already in or requested that group",
+    });
+  } else {
+    users.push({
+      username: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+      id: users.length + 1,
+      roles: ["User"],
+      groups: [],
+    });
+    res.status(200).send({ valid: true });
+  }
+});
+
+app.post("/api/groups/requestAccess", function (req, res) {
+  console.log("Request body: ", req.body);
+  const user = users.find((user) => user.id === req.body.userId);
+  if (user) {
+    user.groups.push({
+      id: req.body.groupId,
+      name: req.body.groupName,
+      approved: false,
+    });
+    res.status(200).send({ valid: true, user: user });
+  } else {
+    res.status(400).send({ valid: false });
   }
 });
 

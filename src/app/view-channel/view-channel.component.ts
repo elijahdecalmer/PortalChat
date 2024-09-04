@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 
 interface Message {
   text: string;
@@ -13,7 +14,7 @@ interface Message {
 @Component({
   selector: 'app-view-channel',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './view-channel.component.html',
 })
 export class ViewChannelComponent implements OnInit {

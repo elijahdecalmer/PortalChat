@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 
 interface User {
   name: string;
@@ -11,7 +12,7 @@ interface User {
 @Component({
   selector: 'app-view-group',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HttpClientModule],
   templateUrl: './view-group.component.html',
 })
 export class ViewGroupComponent implements OnInit {
@@ -58,5 +59,9 @@ export class ViewGroupComponent implements OnInit {
 
   navigateToChannel(channel: any) {
     this.router.navigate([`/viewchannel`, this.groupId, channel.id]);
+  }
+
+  leaveGroup() {
+    console.log('Leaving group... TODO IMPLEMENT THIS FuNCOTIJKN ');
   }
 }
