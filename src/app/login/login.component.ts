@@ -66,8 +66,8 @@ export class LoginComponent {
       )
       .subscribe((response: any) => {
         if (response?.valid) {
-          const { password, ...userWithoutPassword } = response;
-          this.authService.login(userWithoutPassword);
+          const { data } = response;
+          this.authService.login(data);
           this.router.navigate(['/browsegroups']);
         } else {
           this.errorMessage = response?.message || 'Invalid credentials.';

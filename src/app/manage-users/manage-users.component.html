@@ -1,81 +1,124 @@
 <div class="bg-gray-700 min-h-screen p-6">
-  <h2 class="text-2xl font-bold text-white mb-4">Manage Users</h2>
+  <h2 class="text-2xl font-bold text-white mb-4">Manage Users and Groups</h2>
+
   <div class="space-y-4">
+    <!-- Loop through each group -->
     <div
-      *ngFor="let user of users"
-      class="bg-gray-800 rounded-lg p-4 shadow-md flex justify-between items-center"
+      *ngFor="let group of groups"
+      class="bg-gray-800 rounded-lg p-4 shadow-md"
     >
-      <div>
-        <h3 class="text-xl font-semibold text-white">{{ user.name }}</h3>
-        <p class="text-gray-400">{{ user.bio }}</p>
-        <div class="mt-2">
-          <span
-            *ngIf="user.isGroupAdmin"
-            class="bg-green-500 text-white text-xs px-2 py-1 rounded-full mr-2"
-            >Group Admin</span
+      <h3 class="text-xl font-semibold text-white">{{ group.name }}</h3>
+      <p class="text-sm text-gray-400">Admin: {{ group.admin }}</p>
+
+      <!-- List accepted users -->
+      <div class="mt-2">
+        <h4 class="text-lg font-bold text-white">Accepted Users</h4>
+        <ul class="mt-2 space-y-1">
+          <li
+            *ngFor="let user of group.members"
+            class="flex justify-between items-center"
           >
-          <span
-            *ngIf="user.isSuperAdmin"
-            class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full"
-            >Super Admin</span
-          >
-        </div>
-        <p class="text-gray-400 mt-1">
-          Groups Created: {{ user.groupsCreated }}
-        </p>
+            <span class="text-white">
+              {{ user.username }}
+              <span
+                *ngIf="user.roles.includes('Group Admin')"
+                class="text-xs bg-green-500 text-white px-2 py-1 rounded-full ml-2"
+                >Admin</span
+              >
+            </span>
+            <div>
+              <button
+                (click)="removeFromGroup(group, user)"
+                class="text-sm text-red-500 hover:text-red-700"
+              >
+                Remove from Group
+              </button>
+              <button
+                (click)="banFromChannel(group, user)"
+                class="text-sm text-yellow-500 hover:text-yellow-700 ml-2"
+              >
+                Ban & Report
+              </button>
+            </div>
+          </li>
+        </ul>
       </div>
-      <div class="relative">
-        <button
-          class="text-white focus:outline-none"
-          (click)="user.showMenu = !user.showMenu"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+
+      <!-- List pending approval users -->
+      <div class="mt-4">
+        <h4 class="text-lg font-bold text-white">Pending Approvals</h4>
+        <ul class="mt-2 space-y-1">
+          <li
+            *ngFor="let user of group.pendingRequests"
+            class="flex justify-between items-center"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 6v.01M12 12v.01M12 18v.01"
-            />
-          </svg>
-        </button>
-        <div
-          *ngIf="user.showMenu"
-          class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20"
-        >
-          <ul class="py-1">
-            <li>
-              <a
-                (click)="promoteToGroupAdmin(user)"
-                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            <span class="text-white">{{ user.username }}</span>
+            <div>
+              <button
+                (click)="approveUser(group, user)"
+                class="text-sm text-green-500 hover:text-green-700"
               >
-                Promote to Group Admin
-              </a>
-            </li>
-            <li>
-              <a
-                (click)="promoteToSuperAdmin(user)"
-                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                Approve
+              </button>
+              <button
+                (click)="denyUser(group, user)"
+                class="text-sm text-red-500 hover:text-red-700 ml-2"
               >
-                Promote to Super Admin
-              </a>
-            </li>
-            <li>
-              <a
-                (click)="deleteUser(user)"
-                class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-              >
-                Delete User
-              </a>
-            </li>
-          </ul>
-        </div>
+                Deny
+              </button>
+            </div>
+          </li>
+        </ul>
       </div>
+    </div>
+
+    <!-- If the current user is a Super Admin, show all users with management options -->
+    <div *ngIf="isSuperAdmin" class="bg-gray-800 rounded-lg p-4 shadow-md mt-6">
+      <h3 class="text-xl font-semibold text-white">All Users</h3>
+      <ul class="mt-2 space-y-1">
+        <li
+          *ngFor="let user of allUsers"
+          class="flex justify-between items-center"
+        >
+          <span class="text-white">
+            {{ user.username }}
+            <span
+              *ngIf="user.reported"
+              class="text-xs bg-red-500 text-white px-2 py-1 rounded-full ml-2"
+              >Reported</span
+            >
+          </span>
+          <div>
+            <button
+              *ngIf="!user.roles.includes('Super Admin')"
+              (click)="deleteUser(user)"
+              class="text-sm text-red-500 hover:text-red-700"
+            >
+              Delete User
+            </button>
+            <button
+              *ngIf="
+                !user.roles.includes('Group Admin') &&
+                !user.roles.includes('Super Admin')
+              "
+              (click)="promoteToGroupAdmin(user)"
+              class="text-sm text-green-500 hover:text-green-700 ml-2"
+            >
+              Promote to Group Admin
+            </button>
+            <button
+              *ngIf="
+                user.roles.includes('Group Admin') &&
+                !user.roles.includes('Super Admin')
+              "
+              (click)="promoteToSuperAdmin(user)"
+              class="text-sm text-blue-500 hover:text-blue-700 ml-2"
+            >
+              Promote to Super Admin
+            </button>
+          </div>
+        </li>
+      </ul>
     </div>
   </div>
 </div>

@@ -118,9 +118,14 @@
         </ul>
       </nav>
 
+      <!-- Display the user session data -->
+      <pre class="text-white bg-gray-800 rounded p-4 mt-4">
+        {{ userSession | json }}
+      </pre>
+
       <button
         (click)="signOut()"
-        class="group mb-4 flex gap-x-3 rounded-md bg-gray-800 p-2 text-sm font-semibold leading-6 text-white"
+        class="group flex gap-x-3 rounded-md bg-gray-800 p-2 text-sm font-semibold leading-6 text-white"
       >
         <svg
           class="h-6 w-6 shrink-0"
@@ -137,6 +142,27 @@
           />
         </svg>
         Sign Out
+      </button>
+
+      <button
+        (click)="deleteAccount()"
+        class="group mb-4 flex gap-x-3 rounded-md bg-gray-800 p-2 text-sm font-semibold leading-6 text-white"
+      >
+        <svg
+          class="h-6 w-6 shrink-0"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+        Delete Account
       </button>
     </div>
   </div>

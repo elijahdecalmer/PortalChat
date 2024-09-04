@@ -15,22 +15,17 @@ export const routes: Routes = [
   {
     path: 'browsegroups',
     component: BrowseGroupsComponent,
-    canActivate: [authGuard],
   },
   {
     path: 'viewchannel/:groupid/:channelid',
     component: ViewChannelComponent,
-    canActivate: [authGuard],
   },
   {
     path: 'viewgroup/:groupid',
     component: ViewGroupComponent,
-    canActivate: [authGuard],
   },
   {
     path: 'manageusers',
     component: ManageUsersComponent,
-    canActivate: [authGuard],
   },
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
 ];

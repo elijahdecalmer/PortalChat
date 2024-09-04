@@ -21,19 +21,23 @@ export class BrowseGroupsComponent {
 
   requestAccess(group: any) {
     if (!this.isAccessRequested(group) && !this.isMember(group)) {
-      this.authService
-        .requestGroupAccess(group.id, group.title)
-        .subscribe(() => {
+      this.authService.requestAccessToGroup(group.id, group.title).subscribe(
+        () => {
           console.log(`Requested access to ${group.title}`);
-        });
+        },
+        (error) => {
+          console.error(`Failed to request access to ${group.title}`, error);
+        }
+      );
     }
   }
 
   isAccessRequested(group: any): boolean {
-    const currentUser = this.authService.currentUserValue;
-    if (currentUser && currentUser.groups) {
+    const currentUser = this?.authService?.currentUserValue;
+    if (currentUser && currentUser?.groups) {
       return currentUser.groups.some(
-        (userGroup) => userGroup.id === group.id && !userGroup.approved
+        (userGroup: { id: any; approved: any }) =>
+          userGroup.id === group.id && !userGroup.approved
       );
     }
     return false;
@@ -43,7 +47,8 @@ export class BrowseGroupsComponent {
     const currentUser = this.authService.currentUserValue;
     if (currentUser && currentUser.groups) {
       return currentUser.groups.some(
-        (userGroup) => userGroup.id === group.id && userGroup.approved
+        (userGroup: { id: any; approved: any }) =>
+          userGroup.id === group.id && userGroup.approved
       );
     }
     return false;
