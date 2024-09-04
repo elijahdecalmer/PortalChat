@@ -137,6 +137,34 @@ export class AuthService {
     return of(null);
   }
 
+  sendMessage(
+    groupId: number,
+    channelId: string,
+    message: string
+  ): Observable<any> {
+    const currentUser = this.currentUserValue;
+    if (currentUser) {
+      return this.http
+        .post(
+          `${this.baseUrl}/api/groups/${groupId}/channels/${channelId}/message`,
+          {
+            userId: currentUser.id,
+            message,
+          }
+        )
+        .pipe(
+          tap((response: any) => {
+            console.log('Message sent successfully:', response);
+          }),
+          catchError((error) => {
+            console.error('Failed to send message:', error);
+            return of(null); // Gracefully handle error
+          })
+        );
+    }
+    return of(null);
+  }
+
   createGroup(groupName: string): Observable<any> {
     const currentUser = this.currentUserValue;
     if (currentUser) {

@@ -385,6 +385,36 @@ app.post("/api/groups/requestUpgrade", (req, res) => {
   }
 });
 
+// Send a message to a channel in a group
+app.post("/api/groups/:groupId/channels/:channelId/message", (req, res) => {
+  const groupId = parseInt(req.params.groupId, 10);
+  const channelId = req.params.channelId;
+  const userId = req.body.userId;
+  const messageText = req.body.message;
+
+  const user = findUserById(userId);
+  const group = findGroupById(groupId);
+
+  if (user && group) {
+    const channel = group.channels.find((ch) => ch.name === channelId);
+
+    if (channel) {
+      const newMessage = {
+        from: user.username,
+        message: messageText,
+        timestamp: new Date().toISOString(),
+      };
+
+      channel.messages.push(newMessage);
+      sendSuccessResponse(res, newMessage, "Message sent successfully.");
+    } else {
+      sendErrorResponse(res, "Channel not found.");
+    }
+  } else {
+    sendErrorResponse(res, "Group or user not found.");
+  }
+});
+
 // Add a channel to a group
 app.post("/api/groups/:groupId/addChannel", (req, res) => {
   const user = findUserById(req.body.userId);
