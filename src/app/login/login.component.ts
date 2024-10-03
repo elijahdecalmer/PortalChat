@@ -2,27 +2,14 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import {
-  HttpClient,
-  HttpClientModule,
-  HttpHeaders,
-} from '@angular/common/http';
+import { AuthService } from '../services/auth-service.service';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { AuthService } from '../auth.service';
-
-const httpOptions = {
-  headers: new HttpHeaders({
-    'Content-Type': 'application/json',
-  }),
-};
-
-const BACKEND_URL = 'http://localhost:4000';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule, HttpClientModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './login.component.html',
 })
 export class LoginComponent {
@@ -30,11 +17,7 @@ export class LoginComponent {
   password: string;
   errorMessage: string;
 
-  constructor(
-    private router: Router,
-    private httpClient: HttpClient,
-    private authService: AuthService
-  ) {
+  constructor(private router: Router, private authService: AuthService) {
     this.username = '';
     this.password = '';
     this.errorMessage = '';
@@ -44,19 +27,8 @@ export class LoginComponent {
     event.preventDefault();
     this.errorMessage = '';
 
-    this.httpClient
-      .post<{
-        valid: boolean;
-        username: string;
-        email: string;
-        id: number;
-        roles: string[];
-        groups?: string[];
-      }>(
-        `${BACKEND_URL}/api/auth`,
-        { username: this.username, password: this.password },
-        httpOptions
-      )
+    this.authService
+      .login(this.username, this.password) // Call the login method from AuthService
       .pipe(
         catchError((error) => {
           this.errorMessage =
@@ -65,10 +37,8 @@ export class LoginComponent {
         })
       )
       .subscribe((response: any) => {
-        if (response?.valid) {
-          const { data } = response;
-          this.authService.login(data);
-          this.router.navigate(['/browsegroups']);
+        if (response?.token) {
+          this.router.navigate(['/browsegroups']); // Navigate to the groups page upon success
         } else {
           this.errorMessage = response?.message || 'Invalid credentials.';
         }

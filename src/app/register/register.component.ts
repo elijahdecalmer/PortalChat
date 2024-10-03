@@ -2,26 +2,12 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import {
-  HttpClient,
-  HttpClientModule,
-  HttpHeaders,
-} from '@angular/common/http';
-import { catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
-
-const httpOptions = {
-  headers: new HttpHeaders({
-    'Content-Type': 'application/json',
-  }),
-};
-
-const BACKEND_URL = 'http://localhost:4000';
+import { AuthService } from '../services/auth-service.service'; // Import AuthService
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule, CommonModule, HttpClientModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './register.component.html',
 })
 export class RegisterComponent {
@@ -31,7 +17,7 @@ export class RegisterComponent {
   errorMessage: string;
   successMessage: string;
 
-  constructor(private router: Router, private httpClient: HttpClient) {
+  constructor(private router: Router, private authService: AuthService) {
     this.username = '';
     this.password = '';
     this.email = '';
@@ -44,26 +30,22 @@ export class RegisterComponent {
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.httpClient
-      .post<{ success: boolean; message: string }>(
-        `${BACKEND_URL}/api/register`,
-        { username: this.username, password: this.password, email: this.email },
-        httpOptions
-      )
-      .pipe(
-        catchError((error) => {
+    this.authService
+      .register(this.email, this.username, this.password) // Call the service method
+      .subscribe(
+        (response: any) => {
+          if (response) {
+            this.successMessage = 'Registration successful!';
+            this.router.navigate(['/login']); // Redirect to login page after successful registration
+          } else {
+            this.errorMessage = 'Registration failed.';
+          }
+        },
+        (error: any) => {
           this.errorMessage =
             'Registration failed. Please try again. Error message: ' +
             error.message;
-          return of(null);
-        })
-      )
-      .subscribe((response: any) => {
-        if (response?.valid) {
-          this.successMessage = 'Registration successful!';
-        } else {
-          this.errorMessage = response?.message || 'Registration failed.';
         }
-      });
+      );
   }
 }

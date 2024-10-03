@@ -3,7 +3,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { AuthService } from '../auth.service';
 import { tap } from 'rxjs/operators';
 
 interface Message {
@@ -28,7 +27,6 @@ export class ViewChannelComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -38,23 +36,7 @@ export class ViewChannelComponent implements OnInit {
 
   sendMessage() {
     if (this.newMessage.trim()) {
-      this.authService
-        .sendMessage(parseInt(this.groupId), this.channelId, this.newMessage)
-        .pipe(
-          tap((response: any) => {
-            this.messages.push({
-              text: this.newMessage,
-              timestamp: response.data.timestamp,
-              incoming: false,
-              showTimestamp: false,
-            });
-            this.newMessage = ''; // Clear input after sending
-          })
-        )
-        .subscribe({
-          next: () => console.log('Message sent and displayed'),
-          error: (error) => console.error('Error sending message:', error),
-        });
+      
     }
   }
 

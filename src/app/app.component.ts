@@ -9,7 +9,7 @@ import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { AuthService } from './auth.service';
+import { AuthService } from './services/auth-service.service';
 import { filter } from 'rxjs/operators';
 import { HttpClientModule } from '@angular/common/http';
 import { tap, catchError } from 'rxjs/operators';
@@ -41,6 +41,7 @@ export class AppComponent implements OnInit {
   constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
+    // Subscribing to the current user observable from the AuthServiceService
     this.authService.user.subscribe((user) => {
       this.userSession = user;
       console.log('User session:', this.userSession);
@@ -81,11 +82,13 @@ export class AppComponent implements OnInit {
   }
 
   signOut() {
+    // Call logout method from the AuthServiceService
     this.authService.logout();
     this.router.navigate(['/login']);
   }
 
   deleteAccount() {
+    // Using deleteAccount method from the AuthServiceService
     this.authService
       .deleteAccount()
       .pipe(

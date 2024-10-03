@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { AuthService } from '../auth.service';
 
 interface User {
   username: string;
@@ -37,15 +36,12 @@ export class ViewGroupComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private authService: AuthService
   ) {}
 
   ngOnInit() {
     this.groupId = this.route.snapshot.paramMap.get('groupid') || '';
     this.loadGroupDetails();
-    this.authService.user.subscribe((user) => {
-      this.user = user;
-    });
+
   }
 
   loadGroupDetails() {
@@ -109,16 +105,7 @@ export class ViewGroupComponent implements OnInit {
   }
 
   leaveGroup() {
-    this.authService
-      .removeUserFromGroup(Number(this.groupId), Number(this?.user?.id))
-      .subscribe(
-        () => {
-          console.log('Successfully left the group');
-          this.router.navigate(['/browsegroups']);
-        },
-        (error) => {
-          console.error('Error leaving group:', error);
-        }
-      );
+    // Implement leave group functionality here
+    console.log('TODO Leaving group...');
   }
 }
