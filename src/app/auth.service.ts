@@ -19,7 +19,7 @@ interface User {
 export class AuthService {
   private userSubject = new BehaviorSubject<User | null>(null);
   public user: Observable<User | null> = this.userSubject.asObservable();
-  private baseUrl = 'http://localhost:3000';
+  private baseUrl = 'http://localhost:4000';
 
   constructor(private http: HttpClient) {
     const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');

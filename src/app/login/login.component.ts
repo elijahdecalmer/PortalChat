@@ -17,7 +17,7 @@ const httpOptions = {
   }),
 };
 
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = 'http://localhost:4000';
 
 @Component({
   selector: 'app-login',
