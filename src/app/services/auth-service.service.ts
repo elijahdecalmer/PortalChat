@@ -68,23 +68,33 @@ export class AuthService {
   }
 
   // Delete account
-  deleteAccount(): Observable<any> {
-    // Assume that there's an endpoint `/deleteAccount` in your server for deleting the account
-    const headers = new HttpHeaders({
-      'Authorization': this.userSubject.value?.token // Use token from the user object
-    });
-
-    return this.http.delete<any>(`${this.apiUrl}/deleteAccount`, { headers })
-      .pipe(
-        tap(() => {
-          this.logout(); // Log out user after account deletion
-        }),
-        catchError((error) => {
-          console.error('Error deleting account:', error);
-          return of(null); // Gracefully handle error
-        })
-      );
+deleteAccount(): Observable<any> {
+  const token = this.userSubject.value?.token;
+  if (!token) {
+    console.error('No token found for authorization');
+    return of(null); // Gracefully handle the case where there's no token
   }
+
+  const headers = new HttpHeaders({
+    'Authorization': `${token}` // Attach the token as a Bearer token
+  });
+
+  return this.http.post<any>(`${this.apiUrl}/deleteAccount`, {}, { headers }) // Pass headers in options object
+    .pipe(
+      tap((response) => {
+        if (response?.success) {
+          console.log('Account deleted successfully');
+          this.logout(); // Log out user after account deletion
+        } else {
+          console.error('Error deleting account:', response?.message || 'Unknown error');
+        }
+      }),
+      catchError((error) => {
+        console.error('Error deleting account:', error);
+        return of(null); // Gracefully handle error
+      })
+    );
+}
 
   // Function to get the current user session (as an object)
   getUser() {

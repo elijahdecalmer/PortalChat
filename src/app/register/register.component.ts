@@ -32,20 +32,12 @@ export class RegisterComponent {
 
     this.authService
       .register(this.email, this.username, this.password) // Call the service method
-      .subscribe(
-        (response: any) => {
-          if (response) {
-            this.successMessage = 'Registration successful!';
-            this.router.navigate(['/login']); // Redirect to login page after successful registration
-          } else {
-            this.errorMessage = 'Registration failed.';
-          }
-        },
-        (error: any) => {
-          this.errorMessage =
-            'Registration failed. Please try again. Error message: ' +
-            error.message;
+      .subscribe((response: any) => {
+        if (response?.token) {
+          this.router.navigate(['/browsegroups']); // Navigate to the groups page upon success
+        } else {
+          this.errorMessage = response?.message || 'Invalid credentials.';
         }
-      );
+  });
   }
 }

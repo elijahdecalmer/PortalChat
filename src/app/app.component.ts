@@ -49,8 +49,8 @@ export class AppComponent implements OnInit {
         this.isLoggedIn = true;
         this.groups = user.groups || [];
         console.log('User groups:', this.groups);
-        this.isSuperAdmin = user.roles?.includes('Super Admin') || false;
-        this.isGroupAdmin = user.roles?.includes('Group Admin') || false;
+        this.isSuperAdmin = user.role === "super_admin" || false;
+        this.isGroupAdmin = user.role === "group_admin" || false;
       } else {
         this.groups = [];
         this.isSuperAdmin = false;
