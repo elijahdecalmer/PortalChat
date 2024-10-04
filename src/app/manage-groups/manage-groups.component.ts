@@ -3,6 +3,7 @@ import { AuthService } from '../services/auth-service.service';
 import { GroupServiceService } from '../services/group-service.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ChannelServiceService } from '../services/channel-service.service';
 
 @Component({
   selector: 'app-manage-groups',
@@ -19,11 +20,18 @@ export class ManageGroupsComponent implements OnInit {
   userSession: any = null;
   newGroupName = '';
   newGroupDescription = '';
-  
+  newChannelNames: { [key: string]: string } = {};
+  newChannelDescriptions: { [key: string]: string } = {}; 
+  isModalOpen = false;
+  newChannelName = '';
+  newChannelDescription = '';
+  currentGroupId: any | null = '';
+
 
   constructor(
     private authService: AuthService,
-    private groupService: GroupServiceService
+    private groupService: GroupServiceService,
+    private channelService: ChannelServiceService
   ) {}
 
   ngOnInit() {
@@ -72,6 +80,47 @@ export class ManageGroupsComponent implements OnInit {
         console.error('Group name and description are required');
       }
     }
+
+  // Method to create a channel within the selected group
+  createChannel(): void {
+    if (this.currentGroupId && this.newChannelName && this.newChannelDescription) {
+      this.channelService
+        .createChannel(this.currentGroupId, this.newChannelName, this.newChannelDescription)
+        .subscribe((response: any) => {
+          if (response.success) {
+            console.log('Channel created successfully');
+            this.loadGroups(); // Reload groups to display the new channel
+            this.closeChannelModal(); // Close the modal after success
+          } else {
+            console.error('Error creating channel:', response.message);
+          }
+        });
+    } else {
+      console.log("Current Group ID: ", this.currentGroupId);
+      console.log("New Channel Name: ", this.newChannelName);
+      console.log("New Channel Description: ", this.newChannelDescription);
+      console.error('Channel name is required');
+    }
+  }
+
+    // Method to open the modal for creating a new channel
+    openChannelModal(groupId: string): void {
+      this.isModalOpen = true;
+      this.currentGroupId = groupId;
+      console.log("Current Group ID: ", groupId);
+    }
+
+    // Method to close the modal
+    closeChannelModal(): void {
+      this.isModalOpen = false;
+      this.newChannelName = '';
+      this.newChannelDescription = '';
+      this.currentGroupId = null;
+    }
+
+
+
+
 
 
 

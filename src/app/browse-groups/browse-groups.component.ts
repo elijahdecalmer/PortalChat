@@ -57,7 +57,6 @@ export class BrowseGroupsComponent implements OnInit {
     const isMember = group.members.some((member: any) => {
       return member._id == this.userSession?._id
     });
-    console.log('isMember:', isMember);
     return isMember;
   }
 
@@ -83,26 +82,4 @@ export class BrowseGroupsComponent implements OnInit {
     );
   }
 
-  // Method to create a new group
-  createGroup(): void {
-    if (this.newGroupName && this.newGroupDescription) {
-      this.groupService
-        .createGroup(this.newGroupName, this.newGroupDescription)
-        .subscribe(
-          (response: any) => {
-            if (response.success) {
-              // Clear the input fields after successful creation
-              this.newGroupName = '';
-              this.newGroupDescription = '';
-              console.log('Group created successfully');
-              this.loadGroups(); // Reload groups to display the new group
-            } else {
-              console.error('Error creating group:', response.message);
-            }
-          }
-        );
-    } else {
-      console.error('Group name and description are required');
-    }
-  }
 }
