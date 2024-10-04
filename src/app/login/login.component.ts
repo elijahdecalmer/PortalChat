@@ -13,34 +13,38 @@ import { of } from 'rxjs';
   templateUrl: './login.component.html',
 })
 export class LoginComponent {
-  username: string;
-  password: string;
-  errorMessage: string;
+  username: string = ''; // Two-way binding will automatically sync with input
+  password: string = ''; // Two-way binding for password
+  errorMessage: string = ''; // To store any error messages
 
-  constructor(private router: Router, private authService: AuthService) {
-    this.username = '';
-    this.password = '';
-    this.errorMessage = '';
-  }
+  constructor(private router: Router, private authService: AuthService) {}
 
+  // Method to handle form submission
   onSubmit(event: Event) {
-    event.preventDefault();
+    event.preventDefault(); // Prevent default form submission behavior
+
+    // Clear any existing error messages before a new login attempt
     this.errorMessage = '';
 
+    // Call the login method from AuthService
     this.authService
-      .login(this.username, this.password) // Call the login method from AuthService
+      .login(this.username, this.password)
       .pipe(
+        // Handle login errors if any
         catchError((error) => {
-          this.errorMessage =
-            'Login failed. Please try again. Error message: ' + error.message;
-          return of(null);
+          // Set a generic error message or append the server's error message
+          this.errorMessage = `Login failed. Please try again. ${error?.error?.message ?? ''}`;
+          return of(null); // Return an observable to continue the flow
         })
       )
-      .subscribe((response: any) => {
-        if (response?.token) {
-          this.router.navigate(['/browsegroups']); // Navigate to the groups page upon success
+      .subscribe((response) => {
+        // Check if the response is successful
+        if (response?.success) {
+          // If login is successful, navigate to the desired route (e.g., groups page)
+          this.router.navigate(['/browsegroups']);
         } else {
-          this.errorMessage = response?.message || 'Invalid credentials.';
+          // If login fails, set the error message from the response or show a default message
+          this.errorMessage = response?.message || 'Login failed. Invalid credentials.';
         }
       });
   }

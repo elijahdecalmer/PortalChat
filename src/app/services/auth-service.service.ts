@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +15,6 @@ export class AuthService {
   public user = this.userSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {
-    // On service init, check if the user session exists in localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
       this.userSubject.next(JSON.parse(userData));
@@ -30,13 +28,12 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/register`, userData)
       .pipe(
         tap((response) => {
-          // Save user data to localStorage
-          localStorage.setItem('user', JSON.stringify(response));
-          this.userSubject.next(response);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          this.userSubject.next(response.user);
         }),
         catchError((error) => {
-          console.error('Registration error:', error);
-          return of(null); // Gracefully handle error
+          console.error('Registration error:', error.error.message);
+          return of(null);
         })
       );
   }
@@ -48,55 +45,53 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, loginData)
       .pipe(
         tap((response) => {
-          // Save user data to localStorage
-          localStorage.setItem('user', JSON.stringify(response));
-          this.userSubject.next(response);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          this.userSubject.next(response.user);
         }),
         catchError((error) => {
-          console.error('Login error:', error);
-          return of(null); // Gracefully handle error
+          console.error('Login error:', error.error.message);
+          return of(null);
         })
       );
   }
 
   // Function to log out a user
   logout() {
-    // Clear user session from localStorage and notify the app
     localStorage.removeItem('user');
     this.userSubject.next(null);
     this.router.navigate(['/login']); // Redirect to login page after logout
   }
 
   // Delete account
-deleteAccount(): Observable<any> {
-  const token = this.userSubject.value?.token;
-  if (!token) {
-    console.error('No token found for authorization');
-    return of(null); // Gracefully handle the case where there's no token
+  deleteAccount(): Observable<any> {
+    const token = this.userSubject.value?.token;
+    if (!token) {
+      console.error('No token found for authorization');
+      return of(null);
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<any>(`${this.apiUrl}/deleteAccount`, {}, { headers })
+      .pipe(
+        tap((response) => {
+          if (response?.success) {
+            console.log('Account deleted successfully');
+            this.logout(); // Log out user after account deletion
+          } else {
+            console.error('Error deleting account:', response?.message || 'Unknown error');
+          }
+        }),
+        catchError((error) => {
+          console.error('Error deleting account:', error.error.message);
+          return of(null);
+        })
+      );
   }
 
-  const headers = new HttpHeaders({
-    'Authorization': `${token}` // Attach the token as a Bearer token
-  });
-
-  return this.http.post<any>(`${this.apiUrl}/deleteAccount`, {}, { headers }) // Pass headers in options object
-    .pipe(
-      tap((response) => {
-        if (response?.success) {
-          console.log('Account deleted successfully');
-          this.logout(); // Log out user after account deletion
-        } else {
-          console.error('Error deleting account:', response?.message || 'Unknown error');
-        }
-      }),
-      catchError((error) => {
-        console.error('Error deleting account:', error);
-        return of(null); // Gracefully handle error
-      })
-    );
-}
-
-  // Function to get the current user session (as an object)
+  // Function to get the current user session
   getUser() {
     return this.userSubject.value;
   }
