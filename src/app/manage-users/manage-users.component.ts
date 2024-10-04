@@ -126,7 +126,16 @@ export class ManageUsersComponent implements OnInit {
 
 
   deleteUser(user: User): void {
-
+    this.adminService.deleteUser(user._id).subscribe(
+      (response: any) => {
+        if (response.success) {
+          console.log('User deleted:', user.username);
+          this.loadUsers();
+        } else {
+          console.error('Error deleting user:', response.message);
+        }
+      }
+    );
   }
 
   isGroupAdmin(group: Group, userId: string): void {

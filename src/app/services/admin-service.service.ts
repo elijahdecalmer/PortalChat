@@ -45,7 +45,7 @@ export class AdminServiceService {
   // Delete a user
   deleteUser(userId: string) {
     return this.http.post(
-      `${this.apiUrl}/deleteAccount`,
+      `${this.apiUrl}/deleteUser`,
       { userId },
       { headers: this.getHeaders() }
     );

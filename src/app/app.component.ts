@@ -33,6 +33,7 @@ export class AppComponent implements OnInit {
   title = 'PortalChat';
   isSidebarOpen = false;
   groups: any[] = [];
+  groupRequests: any[] = [];
   isSuperAdmin = false;
   isGroupAdmin = false;
   isLoggedIn = false;
@@ -48,7 +49,7 @@ export class AppComponent implements OnInit {
       if (user) {
         this.isLoggedIn = true;
         this.groups = user.groups || [];
-        console.log('User groups:', this.groups);
+        this.groupRequests = user.groupRequests || [];
         this.isSuperAdmin = user.role === "super_admin" || false;
         this.isGroupAdmin = user.role === "group_admin" || false;
       } else {
@@ -102,5 +103,11 @@ export class AppComponent implements OnInit {
         })
       )
       .subscribe();
+  }
+
+  refetchUser() {
+    this.authService.refetchUser().subscribe((user) => {
+      
+    });
   }
 }

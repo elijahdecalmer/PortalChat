@@ -55,6 +55,33 @@ export class AuthService {
       );
   }
 
+  // Function to refetch the user's session from the server
+  refetchUser(): Observable<any> {
+    const token = this.userSubject.value?.token;
+    if (!token) {
+      console.error('No token found for refetching user data');
+      return of(null);
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.post<any>(`${this.apiUrl}/refetchSelf`, {}, { headers }).pipe(
+      tap((response) => {
+        if (response?.success) {
+          // Update the userSubject with the latest data
+          localStorage.setItem('user', JSON.stringify(response.user));
+          this.userSubject.next(response.user);
+        }
+      }),
+      catchError((error) => {
+        console.error('Error fetching user data:', error.error.message);
+        return of(null);
+      })
+    );
+  }
+
   // Function to log out a user
   logout() {
     localStorage.removeItem('user');

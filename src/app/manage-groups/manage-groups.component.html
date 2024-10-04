@@ -1,0 +1,107 @@
+<div class="bg-gray-700 min-h-screen p-6">
+    <h2 class="text-2xl font-bold text-white mb-4">Manage My Groups</h2>
+    <h1 
+        *ngIf=[isSuperAdmin]
+    class="text-base text-white mb-4">Accessing all groups as Super Admin</h1>
+    <h1 
+        *ngIf="isGroupAdmin"
+    class="text-base text-white mb-4">Accessing my groups as Group Admin</h1>
+
+    <div
+        *ngIf="isGroupAdmin || isSuperAdmin"
+        class="bg-gray-800 rounded-lg p-4 mb-4 shadow-md flex flex-col space-y-4 border border-gray-500"
+    >
+        <h3 class="text-xl font-bold text-white">Create New Group</h3>
+
+        <div>
+        <label for="group-name" class="text-white">Group Name</label>
+        <input
+            type="text"
+            id="group-name"
+            [(ngModel)]="newGroupName"
+            class="mt-1 p-2 w-full bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="Enter group name"
+        />
+        </div>
+
+        <div>
+        <label for="group-description" class="text-white">Group Description</label>
+        <textarea
+            id="group-description"
+            [(ngModel)]="newGroupDescription"
+            class="mt-1 p-2 w-full bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="Enter group description"
+            rows="3"
+        ></textarea>
+        </div>
+
+        <button
+        (click)="createGroup()"
+        class="bg-green-500 text-white rounded-md px-4 py-2 hover:bg-green-600 w-full"
+        >
+        Create New Group
+        </button>
+    </div>
+
+    <div *ngFor="let group of groups" class="flex flex-col">
+        <div class="flex flex-col justify-between bg-gray-800 p-4 rounded-lg mb-4 border border-gray-500">
+            <h2 class="pb-6 text-3xl w-full text-center font-bold text-white">{{ group.name }}</h2>
+
+
+            <h2 class="text-white text-lg font-bold mb-4">Members</h2>
+            <div *ngFor="let user of group.admins" class="flex justify-between items-center w-full">
+                <div class="flex items-center w-full justify-between p-2 rounded-lg bg-gray-700">
+
+                    <div class="flex items-center">
+                    <p class="text-white mr-4">{{ user.username }}</p>
+                    <p class="text-gray-400">({{ user.email }})</p>
+                    </div>
+                    <div 
+                    class="mr-2 px-2 py-1 text-xs font-semibold justify-self-end text-white bg-blue-500 rounded-full">
+                    Group Admin
+            </div>
+                </div>
+            </div>
+            <div *ngFor="let user of group.members" class="flex justify-between items-center w-full">
+                <div class="flex items-center p-2 justify-between w-full">
+                    <div class="flex items-center">
+                    <p class="text-white mr-4">{{ user.username }}</p>
+                    <p class="text-gray-400">({{ user.email }})</p>
+                    </div>
+                    <div class="flex items-center">
+
+                    <div 
+                            class="mr-2 px-2 py-1 text-xs font-semibold justify-self-end text-white bg-orange-700 rounded-md">
+                            Remove from group
+                    </div>
+                    <div 
+                            class="mr-2 px-2 py-1 text-xs font-semibold justify-self-end text-white bg-red-700 rounded-md">
+                            Ban from a channel
+                    </div>
+                    <div 
+                            class="mr-2 px-2 py-1 text-xs font-semibold justify-self-end text-white bg-gray-500 rounded-md">
+                            Report to super admin
+                    </div>
+                </div>
+                </div>
+            </div>
+
+
+            <!-- Channels -->
+            <h2 class="text-white text-lg font-bold mb-4">Channels</h2>
+            <div *ngFor="let channel of group.channels" class="flex justify-between items-center w-full">
+                <div class="flex items-center w-full justify-between p-2 rounded-lg bg-gray-700">
+
+                    <div class="flex items-center">
+                    <p class="text-white mr-4">{{ channel }}</p>
+                    </div>
+                    <div 
+                        class="mr-2 px-2 py-1 text-xs font-semibold justify-self-end text-white bg-blue-500 rounded-full">
+                        Manage Channel
+                    </div>
+                </div>
+            </div>
+
+        </div>            
+    </div>
+</div>

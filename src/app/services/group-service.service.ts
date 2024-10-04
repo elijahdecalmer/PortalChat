@@ -54,4 +54,24 @@ export class GroupServiceService {
       { headers: this.getHeaders() }
     );
   }
+
+  // Create a new group
+  createGroup(name: string, description: string) {
+    return this.http.post(
+      `${this.apiUrl}/createGroup`,
+      { groupName: name, groupDescription: description },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // Request to join a group
+  requestAccess(groupId: string) {
+    return this.http.post(
+      `${this.apiUrl}/requestAccess`,
+      { groupId },
+      { headers: this.getHeaders() }
+    );
+  }
+
+
 }

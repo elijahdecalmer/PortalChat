@@ -1,53 +1,108 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { tap } from 'rxjs/operators';
+import { GroupServiceService } from '../services/group-service.service';
+import { AuthService } from '../services/auth-service.service';
+import { FormsModule } from '@angular/forms'; // Import FormsModule for ngModel binding
 
 @Component({
   selector: 'app-browse-groups',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule, HttpClientModule, FormsModule], // Add FormsModule
   templateUrl: './browse-groups.component.html',
 })
 export class BrowseGroupsComponent implements OnInit {
   groups: any[] = [];
+  newGroupName = ''; // New group name input
+  newGroupDescription = ''; // New group description input
   isSuperAdmin = false;
   isGroupAdmin = false;
-  isRequestingGroupAdminPrivileges = false;
-  title = 'PortalChat';
+  isLoggedIn = false;
   userSession: any = null;
 
-  constructor() {}
+  constructor(
+    private authService: AuthService,
+    private groupService: GroupServiceService
+  ) {}
 
   ngOnInit() {
-    
-  }
-
-  requestAccess(group: any) {
-
-  }
-
-  isAccessRequested(group: any): boolean {
-   
-    return false;
-  }
-
-  isMember(group: any): void {
-    
-  }
-
-  getAllGroups() {
-    
-  }
-
-  createGroup() {
-    const groupName = prompt('Enter the new group name:');
-    if (groupName) {
-     
+    this.isLoggedIn = this.authService.isAuthenticated();
+    if (this.isLoggedIn) {
+      this.userSession = this.authService.getUser();
+      this.isSuperAdmin = this.userSession?.role === 'super_admin';
+      this.isGroupAdmin = this.userSession?.role === 'group_admin';
+      this.loadGroups();
+    } else {
+      console.error('User not logged in');
     }
   }
 
-  requestGroupAdminPrivileges() {
-    
+  loadGroups(): void {
+    this.groupService.getAllGroups().subscribe(
+      (response: any) => {
+        if (response.success) {
+          this.groups = response.groups;
+        } else {
+          console.error('Error loading groups:', response.message);
+        }
+      },
+      (error) => {
+        console.error('Error loading groups:', error);
+      }
+    );
+  }
+
+  // Check if the user is already a member of the group
+  isMember(group: any): boolean {
+    const isMember = group.members.some((member: any) => {
+      return member._id == this.userSession?._id
+    });
+    console.log('isMember:', isMember);
+    return isMember;
+  }
+
+  // Check if the user has a pending request to join the group
+  isRequestPending(group: any): boolean {
+    return group.memberRequests.some((request: any) => {
+      return request == this.userSession?._id
+  });
+  }
+
+  // Method to request joining a group
+  requestToJoin(groupId: string): void {
+    console.log('Requesting to join group:', groupId);
+    this.groupService.requestAccess(groupId).subscribe(
+      (response: any) => {
+        if (response.success) {
+          console.log('Request to join group sent successfully');
+          this.loadGroups(); // Reload groups to reflect the pending request
+        } else {
+          console.error('Error sending request:', response.message);
+        }
+      }
+    );
+  }
+
+  // Method to create a new group
+  createGroup(): void {
+    if (this.newGroupName && this.newGroupDescription) {
+      this.groupService
+        .createGroup(this.newGroupName, this.newGroupDescription)
+        .subscribe(
+          (response: any) => {
+            if (response.success) {
+              // Clear the input fields after successful creation
+              this.newGroupName = '';
+              this.newGroupDescription = '';
+              console.log('Group created successfully');
+              this.loadGroups(); // Reload groups to display the new group
+            } else {
+              console.error('Error creating group:', response.message);
+            }
+          }
+        );
+    } else {
+      console.error('Group name and description are required');
+    }
   }
 }
