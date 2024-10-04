@@ -1,28 +1,59 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+
+import { AuthService } from './auth-service.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AdminServiceService {
   private apiUrl = 'http://localhost:4000/api/admin';
-  private headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
+
+  private getHeaders(): HttpHeaders {
+    const user = this.authService.getUser();
+    const token = user?.token;
+    let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    if (token) {
+      headers = headers.append('Authorization', `Bearer ${token}`);
+    } else {
+      console.error('No token found in user session');
+    }
+    return headers;
+  }
+  
 
   // Promote a user to group admin
-  promoteToGroupAdmin(username: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/promote/group-admin`, { usernameToPromote: username }, { headers: this.headers });
+  promoteToGroupAdmin(username: string) {
+    return this.http.post(
+      `${this.apiUrl}/promoteToGroupAdmin`,
+      { usernameToPromote: username },
+      { headers: this.getHeaders() }
+    );
   }
 
   // Promote a user to super admin
-  promoteToSuperAdmin(username: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/promote/super-admin`, { usernameToPromote: username }, { headers: this.headers });
+  promoteToSuperAdmin(username: string) {
+    return this.http.post(
+      `${this.apiUrl}/promoteToSuperAdmin`,
+      { usernameToPromote: username },
+      { headers: this.getHeaders() }
+    );
   }
 
   // Delete a user
-  deleteUser(userId: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/deleteUser`, { userId }, { headers: this.headers });
+  deleteUser(userId: string) {
+    return this.http.post(
+      `${this.apiUrl}/deleteAccount`,
+      { userId },
+      { headers: this.getHeaders() }
+    );
   }
+
+  // Get all users
+  getAllUsers() {
+    return this.http.post(`${this.apiUrl}/allUsers`, {}, { headers: this.getHeaders() });
+  }
+  
 }

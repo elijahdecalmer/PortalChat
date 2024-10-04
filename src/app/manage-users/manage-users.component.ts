@@ -1,32 +1,36 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable, tap } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import { AuthService } from '../services/auth-service.service';
+import { AdminServiceService } from '../services/admin-service.service';
+import { GroupServiceService } from '../services/group-service.service';
 
 interface User {
-  username: string;
   email: string;
-  groups?: any[];
-  requestedGroupAdmin?: boolean;
-  id: number;
-  roles: string[];
-  reported: boolean;
+  profilePictureRef: string;
+  bio: string;
+  role: string;
+  username: string,
+  token: string,
+  groups: string[],
+  groupRequests: string[],
+  _id: string,
+  reported?: boolean,
 }
 
 interface Group {
-  id: number;
+  _id: string,
+  admins: string[],
   name: string;
-  admin: string;
-  members: any[];
-  pendingRequests: User[];
-  channels: any[];
-  bannedUsers: string[];
+  description: string,
+  members: string[],
+  memberRequests: string[],
+  channels: string[],
 }
 
 @Component({
   selector: 'app-manage-users',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule],
   templateUrl: './manage-users.component.html',
 })
 export class ManageUsersComponent implements OnInit {
@@ -36,56 +40,100 @@ export class ManageUsersComponent implements OnInit {
   groups: Group[] = [];
   allUsers: User[] = [];
 
-  constructor() {}
+  constructor(
+    private authService: AuthService,
+    private adminService: AdminServiceService,
+    private groupService: GroupServiceService
+  ) {}
 
   ngOnInit() {
-    
+    this.isLoggedIn = this.authService.isAuthenticated();
+    if (this.isLoggedIn) {
+      this.userSession = this.authService.getUser();
+      this.isSuperAdmin = this?.userSession?.role === 'super_admin' || false;
+      //this.loadGroups();
+      if (this.isSuperAdmin) {
+        this.loadUsers();
+      }
+    } else {
+      // Handle not logged in (e.g., redirect to login)
+      console.error('User not logged in');
+    }
   }
 
   loadGroups(): void {
-   
+    this.groupService.getAllGroups().subscribe(
+      (response: any) => {
+        if (response.success) {
+          this.groups = response.groups;
+        } else {
+          console.error('Error loading groups:', response.message);
+        }
+      }
+    );
   }
 
   loadUsers(): void {
-    if (this.isSuperAdmin) {
-      
-    }
-  }
-
-  promoteToGroupAdmin(user: User): void {
-   
-  }
-
-  promoteToSuperAdmin(user: User): void {
-    
-  }
-
-  removeFromGroup(group: Group, userName: any): void {
-    const user = this.allUsers.find((u) => u.username === userName);
-    if (user && !user.roles.includes('Super Admin')) {
-     
-    }
-  }
-
-  banFromChannel(group: Group, user: User): void {
-   
-  }
-
-  approveUser(group: Group, username: string): void {
-    const user = this.allUsers.find((u) => u.username === username);
-    
-  }
-
-  denyUser(group: Group, user: User): void {
-    // Simulate denying a user (should be replaced with actual API call)
-    group.pendingRequests = group.pendingRequests.filter(
-      (u) => u.username !== user.username
+    this.adminService.getAllUsers().subscribe(
+      (response: any) => {
+        if (response.success) {
+          this.allUsers = response.users;
+        } else {
+          console.error('Error loading users:', response.message);
+        }
+      }
     );
-    console.log(`${user.username} denied from joining ${group.name}`);
   }
+
+  promoteToGroupAdmin(username: string): void {
+    this.adminService.promoteToGroupAdmin(username).subscribe(
+      (response: any) => {
+        if (response.success) {
+          console.log('User promoted to group admin:', username);
+          this.loadUsers();
+        } else {
+          console.error('Error promoting user to group admin:', response.message);
+        }
+      }
+    );
+  
+  }
+
+  promoteToSuperAdmin(username: string): void {
+    this.adminService.promoteToSuperAdmin(username).subscribe(
+      (response: any) => {
+        if (response.success) {
+          console.log('User promoted to super admin:', username);
+          this.loadUsers();
+        } else {
+          console.error('Error promoting user to super admin:', response.message);
+        }
+      }
+    );
+  }
+
+  removeFromGroup(group: Group, userId: string): void {
+
+  }
+
+  banFromChannel(group: Group, userId: string): void {
+
+  }
+
+  approveUser(group: Group, userId: string): void {
+
+  }
+
 
   deleteUser(user: User): void {
-    // Simulate deleting a user (should be replaced with actual API call)
-   
+
+  }
+
+  isGroupAdmin(group: Group, userId: string): void {
+
+  }
+
+  getGroupAdminUsernames(group: Group): void {
+    
   }
 }

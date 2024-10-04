@@ -3,38 +3,36 @@
 
   <div class="space-y-4">
     <!-- Loop through each group -->
-    <div
-      *ngFor="let group of groups"
-      class="bg-gray-800 rounded-lg p-4 shadow-md"
-    >
+    <div *ngFor="let group of groups" class="bg-gray-800 rounded-lg p-4 shadow-md">
       <h3 class="text-xl font-semibold text-white">{{ group.name }}</h3>
-      <p class="text-sm text-gray-400">Admin: {{ group.admin }}</p>
+      <p class="text-sm text-gray-400">
+        Admins: {{ getGroupAdminUsernames(group) }}
+      </p>
 
       <!-- List accepted users -->
       <div class="mt-2">
         <h4 class="text-lg font-bold text-white">Accepted Users</h4>
         <ul class="mt-2 space-y-1">
-          <li
-            *ngFor="let user of group.members"
-            class="flex justify-between items-center"
-          >
+          <li *ngFor="let userId of group.members" class="flex justify-between items-center">
             <span class="text-white">
-              {{ user }}
+              {{ userId }}
+              <!-- Use the isGroupAdmin method here -->
               <span
-                *ngIf="group.admin === user.toString()"
+                *ngIf="isGroupAdmin(group, userId)"
                 class="text-xs bg-green-700 text-white px-2 py-1 rounded-full ml-2"
-                >Admin of this group</span
               >
+                Admin of this group
+              </span>
             </span>
             <div>
               <button
-                (click)="removeFromGroup(group, user)"
+                (click)="removeFromGroup(group, userId)"
                 class="text-sm text-red-500 hover:text-red-700"
               >
                 Remove from Group
               </button>
               <button
-                (click)="banFromChannel(group, user)"
+                (click)="banFromChannel(group, userId)"
                 class="text-sm text-yellow-500 hover:text-yellow-700 ml-2"
               >
                 Ban & Report
@@ -45,26 +43,17 @@
       </div>
 
       <!-- List pending approval users -->
-      <div class="mt-4">
+      <div class="mt-4" *ngIf="group.memberRequests.length > 0">
         <h4 class="text-lg font-bold text-white">Pending Approvals</h4>
         <ul class="mt-2 space-y-1">
-          <li
-            *ngFor="let user of group.pendingRequests"
-            class="flex justify-between items-center"
-          >
-            <span class="text-white">{{ user.username }}</span>
+          <li *ngFor="let userId of group.memberRequests" class="flex justify-between items-center">
+            <span class="text-white">{{ userId }}</span>
             <div>
               <button
-                (click)="approveUser(group, user.username)"
+                (click)="approveUser(group, userId)"
                 class="text-sm text-green-500 hover:text-green-700"
               >
                 Approve
-              </button>
-              <button
-                (click)="denyUser(group, user)"
-                class="text-sm text-red-500 hover:text-red-700 ml-2"
-              >
-                Deny
               </button>
             </div>
           </li>
@@ -76,10 +65,7 @@
     <div *ngIf="isSuperAdmin" class="bg-gray-800 rounded-lg p-4 shadow-md mt-6">
       <h3 class="text-xl font-semibold text-white">All Users</h3>
       <ul class="mt-2 space-y-1">
-        <li
-          *ngFor="let user of allUsers"
-          class="flex justify-between gap-2 items-center"
-        >
+        <li *ngFor="let user of allUsers" class="flex justify-between gap-2 items-center">
           <div class="flex items-center">
             <span class="text-white">
               {{ user.username }}
@@ -91,49 +77,45 @@
             </span>
             <div
               *ngIf="
-                user.roles.includes('Group Admin') &&
-                !user.roles.includes('Super Admin')
+                user.role === 'group_admin'
               "
               class="text-xs font-bold text-blue-800 bg-blue-400 hover:text-blue-700 p-2 py-1 rounded-full ml-2"
             >
               Group Admin
             </div>
             <div
-              *ngIf="user.roles.includes('Super Admin')"
+              *ngIf="user.role === 'super_admin'"
               class="text-xs font-bold text-orange-800 bg-orange-400 hover:text-orange-700 p-2 py-1 rounded-full ml-2"
             >
               Super Admin
             </div>
           </div>
           <div>
-            <button
-              *ngIf="!user.roles.includes('Super Admin')"
-              (click)="deleteUser(user)"
-              class="text-sm text-red-500 hover:text-red-700"
-            >
-              Delete User
-            </button>
+
             <button
               *ngIf="
-                !user.roles.includes('Group Admin') &&
-                !user.roles.includes('Super Admin') &&
-                user.roles.includes('Group Admin Request')
+                user.role === 'chat_user'
               "
-              (click)="promoteToGroupAdmin(user)"
+              (click)="promoteToGroupAdmin(user.username)"
               class="text-sm text-green-500 hover:text-green-700 ml-2"
             >
-              Approve Promotion to Group Admin
+              Promote to Group Admin
             </button>
             <button
               *ngIf="
-                user.roles.includes('Group Admin') &&
-                !user.roles.includes('Super Admin')
+                user.role === 'group_admin'
               "
-              (click)="promoteToSuperAdmin(user)"
+              (click)="promoteToSuperAdmin(user.username)"
               class="text-sm text-blue-500 hover:text-blue-700 ml-2"
             >
               Promote to Super Admin
             </button>
+            <button
+            (click)="deleteUser(user)"
+            class="text-sm text-red-500 hover:text-red-700 px-4"
+          >
+            Delete User
+          </button>
           </div>
         </li>
       </ul>
