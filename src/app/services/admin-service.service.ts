@@ -56,4 +56,12 @@ export class AdminServiceService {
     return this.http.post(`${this.apiUrl}/allUsers`, {}, { headers: this.getHeaders() });
   }
   
+  // Report a user to super admins
+  reportUser(userId: string, message: string) {
+    return this.http.post(
+      `${this.apiUrl}/reportUser`,
+      { userId, message },
+      { headers: this.getHeaders() }
+    );
+  }
 }

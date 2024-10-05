@@ -15,6 +15,7 @@ interface User {
   groupRequests: string[],
   _id: string,
   reported?: boolean,
+  reports: any[],
 }
 
 interface Group {
@@ -39,6 +40,8 @@ export class ManageUsersComponent implements OnInit {
   isLoggedIn = false;
   groups: Group[] = [];
   allUsers: User[] = [];
+  isReportModalOpen = false;
+  selectedUser: User | null = null;
 
   constructor(
     private authService: AuthService,
@@ -112,17 +115,6 @@ export class ManageUsersComponent implements OnInit {
     );
   }
 
-  removeFromGroup(group: Group, userId: string): void {
-
-  }
-
-  banFromChannel(group: Group, userId: string): void {
-
-  }
-
-  approveUser(group: Group, userId: string): void {
-
-  }
 
 
   deleteUser(user: User): void {
@@ -138,11 +130,13 @@ export class ManageUsersComponent implements OnInit {
     );
   }
 
-  isGroupAdmin(group: Group, userId: string): void {
-
+  openReportModal(user: any) {
+    this.selectedUser = user;
+    this.isReportModalOpen = true;
   }
 
-  getGroupAdminUsernames(group: Group): void {
-    
+  closeReportModal() {
+    this.isReportModalOpen = false;
+    this.selectedUser = null;
   }
 }

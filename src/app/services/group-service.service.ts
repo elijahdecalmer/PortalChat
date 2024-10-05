@@ -73,5 +73,14 @@ export class GroupServiceService {
     );
   }
 
+  // Reject a user's request to join a group
+  rejectUser(groupId: string, userId: string) {
+    return this.http.post(
+      `${this.apiUrl}/rejectAccess`,
+      { groupId, userId },
+      { headers: this.getHeaders() }
+    );
+  }
+
 
 }

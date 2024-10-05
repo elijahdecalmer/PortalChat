@@ -32,5 +32,23 @@ export class ChannelServiceService {
       );
     }
 
+     // Delete a channel
+    deleteChannel(groupId: string, channelId: string) {
+    return this.http.post(
+      `${this.apiUrl}/deleteChannel`,
+      { groupId, channelId },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // Ban user from a chanel
+  banUser(groupId: string, channelId: string, userId: string) {
+    return this.http.post(
+      `${this.apiUrl}/banUser`,
+      { groupId, channelId, userId },
+      { headers: this.getHeaders() }
+    );
+  }
+
 
 }

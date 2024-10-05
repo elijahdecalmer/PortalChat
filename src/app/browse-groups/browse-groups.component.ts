@@ -63,7 +63,7 @@ export class BrowseGroupsComponent implements OnInit {
   // Check if the user has a pending request to join the group
   isRequestPending(group: any): boolean {
     return group.memberRequests.some((request: any) => {
-      return request == this.userSession?._id
+      return request._id == this.userSession?._id
   });
   }
 
