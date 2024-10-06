@@ -82,5 +82,13 @@ export class GroupServiceService {
     );
   }
 
+  // Get group details
+  getGroupDetails(groupId: string) {
+    return this.http.post(
+      `${this.apiUrl}/details`,
+      { groupId },
+      { headers: this.getHeaders() }
+    );
+  }
 
 }

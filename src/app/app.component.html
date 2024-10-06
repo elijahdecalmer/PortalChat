@@ -93,7 +93,7 @@
               <li *ngFor="let group of groups">
                 <div class="flex justify-between items-center">
                   <a
-                    [href]="'/viewgroup/' + group.id"
+                    [href]="'/viewgroup/' + group._id"
                     class="group w-full flex gap-x-3 rounded-md bg-gray-800 p-2 text-sm font-semibold leading-6 text-white"
                   >
                     <svg
@@ -154,11 +154,6 @@
           </li>
         </ul>
       </nav>
-
-      <!-- Display the user session data -->
-      <pre class="text-white bg-gray-800 text-xs rounded p-4 mt-4">
-        {{ userSession | json }}
-      </pre>
 
       <button
         (click)="signOut()"

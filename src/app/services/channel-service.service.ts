@@ -13,7 +13,7 @@ export class ChannelServiceService {
   private getHeaders(): HttpHeaders {
     const user = this.authService.getUser();
     const token = user?.token;
-    let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    let headers = new HttpHeaders();
     if (token) {
       headers = headers.append('Authorization', `Bearer ${token}`);
     } else {
@@ -50,5 +50,20 @@ export class ChannelServiceService {
     );
   }
 
+  // Load a channel by ID
+  getChannelDetails(channelId: string) {
+    return this.http.post(
+      `${this.apiUrl}/details`,
+      { channelId },
+      { headers: this.getHeaders() }
+    );
+  }
 
+
+  // Upload a file
+  uploadFile(file: FormData) {
+    return this.http.post(`${this.apiUrl}/uploadFile`, file, {
+      headers: this.getHeaders()
+    });
+  }
 }

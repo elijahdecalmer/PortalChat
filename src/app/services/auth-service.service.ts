@@ -15,7 +15,7 @@ export class AuthService {
   public user = this.userSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {
-    const userData = localStorage.getItem('user');
+    const userData = sessionStorage.getItem('user');
     if (userData) {
       this.userSubject.next(JSON.parse(userData));
     }
@@ -28,7 +28,7 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/register`, userData)
       .pipe(
         tap((response) => {
-          localStorage.setItem('user', JSON.stringify(response.user));
+          sessionStorage.setItem('user', JSON.stringify(response.user));
           this.userSubject.next(response.user);
         }),
         catchError((error) => {
@@ -45,7 +45,7 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, loginData)
       .pipe(
         tap((response) => {
-          localStorage.setItem('user', JSON.stringify(response.user));
+          sessionStorage.setItem('user', JSON.stringify(response.user));
           this.userSubject.next(response.user);
         }),
         catchError((error) => {
@@ -71,7 +71,7 @@ export class AuthService {
       tap((response) => {
         if (response?.success) {
           // Update the userSubject with the latest data
-          localStorage.setItem('user', JSON.stringify(response.user));
+          sessionStorage.setItem('user', JSON.stringify(response.user));
           this.userSubject.next(response.user);
         }
       }),
@@ -84,7 +84,7 @@ export class AuthService {
 
   // Function to log out a user
   logout() {
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
     this.userSubject.next(null);
     this.router.navigate(['/login']); // Redirect to login page after logout
   }
