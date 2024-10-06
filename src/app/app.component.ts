@@ -9,7 +9,7 @@ import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { AuthService } from './auth.service';
+import { AuthService } from './services/auth-service.service';
 import { filter } from 'rxjs/operators';
 import { HttpClientModule } from '@angular/common/http';
 import { tap, catchError } from 'rxjs/operators';
@@ -33,6 +33,7 @@ export class AppComponent implements OnInit {
   title = 'PortalChat';
   isSidebarOpen = false;
   groups: any[] = [];
+  groupRequests: any[] = [];
   isSuperAdmin = false;
   isGroupAdmin = false;
   isLoggedIn = false;
@@ -41,15 +42,16 @@ export class AppComponent implements OnInit {
   constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
+    // Subscribing to the current user observable from the AuthServiceService
     this.authService.user.subscribe((user) => {
       this.userSession = user;
       console.log('User session:', this.userSession);
       if (user) {
         this.isLoggedIn = true;
         this.groups = user.groups || [];
-        console.log('User groups:', this.groups);
-        this.isSuperAdmin = user.roles?.includes('Super Admin') || false;
-        this.isGroupAdmin = user.roles?.includes('Group Admin') || false;
+        this.groupRequests = user.groupRequests || [];
+        this.isSuperAdmin = user.role === "super_admin" || false;
+        this.isGroupAdmin = user.role === "group_admin" || false;
       } else {
         this.groups = [];
         this.isSuperAdmin = false;
@@ -81,11 +83,13 @@ export class AppComponent implements OnInit {
   }
 
   signOut() {
+    // Call logout method from the AuthServiceService
     this.authService.logout();
     this.router.navigate(['/login']);
   }
 
   deleteAccount() {
+    // Using deleteAccount method from the AuthServiceService
     this.authService
       .deleteAccount()
       .pipe(
@@ -99,5 +103,11 @@ export class AppComponent implements OnInit {
         })
       )
       .subscribe();
+  }
+
+  refetchUser() {
+    this.authService.refetchUser().subscribe((user) => {
+      
+    });
   }
 }

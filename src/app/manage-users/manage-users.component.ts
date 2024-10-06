@@ -1,33 +1,37 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from '../auth.service';
-import { Observable, tap } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import { AuthService } from '../services/auth-service.service';
+import { AdminServiceService } from '../services/admin-service.service';
+import { GroupServiceService } from '../services/group-service.service';
 
 interface User {
-  username: string;
   email: string;
-  groups?: any[];
-  requestedGroupAdmin?: boolean;
-  id: number;
-  roles: string[];
-  reported: boolean;
+  profilePictureRef: string;
+  bio: string;
+  role: string;
+  username: string,
+  token: string,
+  groups: string[],
+  groupRequests: string[],
+  _id: string,
+  reported?: boolean,
+  reports: any[],
 }
 
 interface Group {
-  id: number;
+  _id: string,
+  admins: string[],
   name: string;
-  admin: string;
-  members: any[];
-  pendingRequests: User[];
-  channels: any[];
-  bannedUsers: string[];
+  description: string,
+  members: string[],
+  memberRequests: string[],
+  channels: string[],
 }
 
 @Component({
   selector: 'app-manage-users',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule],
   templateUrl: './manage-users.component.html',
 })
 export class ManageUsersComponent implements OnInit {
@@ -36,154 +40,103 @@ export class ManageUsersComponent implements OnInit {
   isLoggedIn = false;
   groups: Group[] = [];
   allUsers: User[] = [];
+  isReportModalOpen = false;
+  selectedUser: User | null = null;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private adminService: AdminServiceService,
+    private groupService: GroupServiceService
+  ) {}
 
   ngOnInit() {
-    this.authService.user.subscribe((user) => {
-      this.userSession = user;
-      if (user) {
-        this.isLoggedIn = true;
-        this.groups = user.groups || [];
-        this.isSuperAdmin = user.roles?.includes('Super Admin') || false;
-        this.loadGroups();
+    this.isLoggedIn = this.authService.isAuthenticated();
+    if (this.isLoggedIn) {
+      this.userSession = this.authService.getUser();
+      this.isSuperAdmin = this?.userSession?.role === 'super_admin' || false;
+      //this.loadGroups();
+      if (this.isSuperAdmin) {
         this.loadUsers();
-      } else {
-        this.groups = [];
-        this.isSuperAdmin = false;
-        this.isLoggedIn = false;
       }
-    });
+    } else {
+      // Handle not logged in (e.g., redirect to login)
+      console.error('User not logged in');
+    }
   }
 
   loadGroups(): void {
-    this.authService
-      .getGroups()
-      .pipe(tap((response: any) => (this.groups = response.data)))
-      .subscribe({
-        next: () => console.log('Groups loaded successfully:', this.groups),
-        error: (error: any) => console.error('Failed to load groups', error),
-      });
+    this.groupService.getAllGroups().subscribe(
+      (response: any) => {
+        if (response.success) {
+          this.groups = response.groups;
+        } else {
+          console.error('Error loading groups:', response.message);
+        }
+      }
+    );
   }
 
   loadUsers(): void {
-    if (this.isSuperAdmin) {
-      this.authService
-        .getAllUsers()
-        .pipe(tap((response: any) => (this.allUsers = response.data)))
-        .subscribe({
-          next: () => console.log('Users loaded successfully:', this.allUsers),
-          error: (error: any) => console.error('Failed to load users', error),
-        });
-    }
-  }
-
-  promoteToGroupAdmin(user: User): void {
-    this.authService
-      .promoteUserToGroupAdmin(user.id)
-      .pipe(
-        tap(() => {
-          user.roles.push('Group Admin');
-        })
-      )
-      .subscribe({
-        next: () => console.log(`${user.username} promoted to Group Admin`),
-        error: (error: any) =>
-          console.error('Failed to promote to Group Admin', error),
-      });
-  }
-
-  promoteToSuperAdmin(user: User): void {
-    this.authService
-      .promoteUserToSuperAdmin(user.id)
-      .pipe(
-        tap(() => {
-          user.roles.push('Super Admin');
-        })
-      )
-      .subscribe({
-        next: () => console.log(`${user.username} promoted to Super Admin`),
-        error: (error: any) =>
-          console.error('Failed to promote to Super Admin', error),
-      });
-  }
-
-  removeFromGroup(group: Group, userName: any): void {
-    const user = this.allUsers.find((u) => u.username === userName);
-    if (user && !user.roles.includes('Super Admin')) {
-      this.authService
-        .removeUserFromGroup(group.id, user.id)
-        .pipe(
-          tap(() => {
-            group.members = group.members.filter(
-              (u) => u.username !== user.username
-            );
-          })
-        )
-        .subscribe({
-          next: () =>
-            console.log(`${user.username} removed from group ${group.name}`),
-          error: (error: any) =>
-            console.error('Failed to remove user from group', error),
-        });
-    }
-  }
-
-  banFromChannel(group: Group, user: User): void {
-    this.authService
-      .banUserFromGroup(group.id, user.username)
-      .pipe(
-        tap(() => {
-          user.reported = true;
-          group.bannedUsers.push(user.username);
-        })
-      )
-      .subscribe({
-        next: () =>
-          console.log(`${user.username} banned from group ${group.name}`),
-        error: (error: any) =>
-          console.error('Failed to ban user from group', error),
-      });
-  }
-
-  approveUser(group: Group, username: string): void {
-    const user = this.allUsers.find((u) => u.username === username);
-    this.authService
-      .approveUserForGroup(group.id, user?.id)
-      .pipe(
-        tap(() => {
-          // Remove the user from pendingRequests and add to members
-          group.pendingRequests = group.pendingRequests.filter(
-            (u) => u.id !== user?.id
-          );
-          group.members.push(user);
-
-          console.log(`${user?.username} approved and added to ${group.name}`);
-        })
-      )
-      .subscribe({
-        next: () =>
-          console.log(`User ${user?.username} approved successfully.`),
-        error: (error: any) => console.error('Failed to approve user:', error),
-      });
-  }
-
-  denyUser(group: Group, user: User): void {
-    // Simulate denying a user (should be replaced with actual API call)
-    group.pendingRequests = group.pendingRequests.filter(
-      (u) => u.username !== user.username
+    this.adminService.getAllUsers().subscribe(
+      (response: any) => {
+        if (response.success) {
+          this.allUsers = response.users;
+        } else {
+          console.error('Error loading users:', response.message);
+        }
+      }
     );
-    console.log(`${user.username} denied from joining ${group.name}`);
   }
+
+  promoteToGroupAdmin(username: string): void {
+    this.adminService.promoteToGroupAdmin(username).subscribe(
+      (response: any) => {
+        if (response.success) {
+          console.log('User promoted to group admin:', username);
+          this.loadUsers();
+        } else {
+          console.error('Error promoting user to group admin:', response.message);
+        }
+      }
+    );
+  
+  }
+
+  promoteToSuperAdmin(username: string): void {
+    this.adminService.promoteToSuperAdmin(username).subscribe(
+      (response: any) => {
+        if (response.success) {
+          console.log('User promoted to super admin:', username);
+          this.loadUsers();
+        } else {
+          console.error('Error promoting user to super admin:', response.message);
+        }
+      }
+    );
+  }
+
+
 
   deleteUser(user: User): void {
-    // Simulate deleting a user (should be replaced with actual API call)
-    this.authService.deleteAnotherAccount(user.id).subscribe({
-      next: () => {
-        console.log(`${user.username} deleted successfully`);
-      },
-      error: (error: any) =>
-        console.error('Failed to delete user account', error),
-    });
+    this.adminService.deleteUser(user._id).subscribe(
+      (response: any) => {
+        if (response.success) {
+          console.log('User deleted:', user.username);
+          this.loadUsers();
+        } else {
+          console.error('Error deleting user:', response.message);
+        }
+      }
+    );
+  }
+
+  openReportModal(user: any) {
+    this.selectedUser = user;
+    this.isReportModalOpen = true;
+  }
+
+  closeReportModal() {
+    this.isReportModalOpen = false;
+    this.selectedUser = null;
   }
 }

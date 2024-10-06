@@ -2,75 +2,49 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import {
-  HttpClient,
-  HttpClientModule,
-  HttpHeaders,
-} from '@angular/common/http';
+import { AuthService } from '../services/auth-service.service';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { AuthService } from '../auth.service';
-
-const httpOptions = {
-  headers: new HttpHeaders({
-    'Content-Type': 'application/json',
-  }),
-};
-
-const BACKEND_URL = 'http://localhost:4000';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule, HttpClientModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './login.component.html',
 })
 export class LoginComponent {
-  username: string;
-  password: string;
-  errorMessage: string;
+  username: string = ''; // Two-way binding will automatically sync with input
+  password: string = ''; // Two-way binding for password
+  errorMessage: string = ''; // To store any error messages
 
-  constructor(
-    private router: Router,
-    private httpClient: HttpClient,
-    private authService: AuthService
-  ) {
-    this.username = '';
-    this.password = '';
-    this.errorMessage = '';
-  }
+  constructor(private router: Router, private authService: AuthService) {}
 
+  // Method to handle form submission
   onSubmit(event: Event) {
-    event.preventDefault();
+    event.preventDefault(); // Prevent default form submission behavior
+
+    // Clear any existing error messages before a new login attempt
     this.errorMessage = '';
 
-    this.httpClient
-      .post<{
-        valid: boolean;
-        username: string;
-        email: string;
-        id: number;
-        roles: string[];
-        groups?: string[];
-      }>(
-        `${BACKEND_URL}/api/auth`,
-        { username: this.username, password: this.password },
-        httpOptions
-      )
+    // Call the login method from AuthService
+    this.authService
+      .login(this.username, this.password)
       .pipe(
+        // Handle login errors if any
         catchError((error) => {
-          this.errorMessage =
-            'Login failed. Please try again. Error message: ' + error.message;
-          return of(null);
+          // Set a generic error message or append the server's error message
+          this.errorMessage = `Login failed. Please try again. ${error?.error?.message ?? ''}`;
+          return of(null); // Return an observable to continue the flow
         })
       )
-      .subscribe((response: any) => {
-        if (response?.valid) {
-          const { data } = response;
-          this.authService.login(data);
+      .subscribe((response) => {
+        // Check if the response is successful
+        if (response?.success) {
+          // If login is successful, navigate to the desired route (e.g., groups page)
           this.router.navigate(['/browsegroups']);
         } else {
-          this.errorMessage = response?.message || 'Invalid credentials.';
+          // If login fails, set the error message from the response or show a default message
+          this.errorMessage = response?.message || 'Login failed. Invalid credentials.';
         }
       });
   }
