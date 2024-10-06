@@ -46,6 +46,7 @@ export class ViewChannelComponent implements OnInit, OnDestroy {
   // Listen for previous messages
   this.socket.on('previousMessages', (messages: any[]) => {
     this.messages = messages.map(message => {
+      console.log("Message type: ", message.messageType);
       if (message.messageType !== 'text') {
         message.mediaRef = 'http://localhost:4000' + message.mediaRef;
       }
@@ -131,18 +132,25 @@ export class ViewChannelComponent implements OnInit, OnDestroy {
   
   uploadFile(file: File) {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('messageType', 'image'); // Adjust if supporting other types
-    formData.append('channelId', this.channelId);
+    const fileType = file.type.split('/')[0]; // Get the type of the file (e.g., 'image', 'video', 'audio')
   
-    this.channelService.uploadFile(formData).subscribe(
-      (response: any) => {
+    // Check if the file type is one of the supported types (image, video, audio)
+    if (fileType === 'image' || fileType === 'video' || fileType === 'audio') {
+      formData.append('file', file);
+      formData.append('messageType', fileType); // Set messageType to 'image', 'video', or 'audio'
+      formData.append('channelId', this.channelId);
+  
+      this.channelService.uploadFile(formData).subscribe((response: any) => {
         if (response.success) {
           // The server will emit the new message via Socket.io
         }
-      }
-    );
+      });
+    } else {
+      console.error('Unsupported file type. Please upload an image, video, or audio file.');
+    }
   }
+  
+  
 
   
 }
