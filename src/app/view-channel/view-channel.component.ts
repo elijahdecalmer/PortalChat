@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,13 +15,14 @@ import { AuthService } from '../services/auth-service.service';
   imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './view-channel.component.html',
 })
-export class ViewChannelComponent implements OnInit {
+export class ViewChannelComponent implements OnInit, OnDestroy {
   channelId: string = '';
   groupId: string = '';
   messages: any[] = [];
   newMessage: string = '';
   channel: any = {};
   socket: Socket | null = null;
+  profilePictureUrl: string = 'http://localhost:4000/uploads/media/default.png';
 
 
   constructor(
@@ -53,17 +54,41 @@ export class ViewChannelComponent implements OnInit {
         incoming: message.sender._id !== this.authService.getUser()._id
       };
     });
+    this.scrollToBottom();
   });
 
   // Listen for new messages
   this.socket.on('newMessage', (message: any) => {
-    console.log("Message received", message);
     if (message.messageType !== 'text') {
       message.mediaRef = 'http://localhost:4000' + message.mediaRef;
     }
     message.incoming = message.sender._id !== this.authService.getUser()._id;
     this.messages.push(message);
+    this.scrollToBottom();
   });
+
+
+  // Handle socket disconnect and navigate to viewgroup
+  this.socket.on('disconnect', () => {
+    this.router.navigate([`/viewgroup`, this.groupId]);
+  });
+  }
+
+  ngOnDestroy() {
+    // Disconnect socket when component is destroyed
+    if (this.socket) {
+      this.socket.disconnect();
+    }
+  }
+
+  // Scroll to the bottom of the messages container
+  scrollToBottom() {
+    const messagesContainer = document.querySelector('.messages-container');
+    setTimeout(() => {
+      if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight - messagesContainer.clientHeight;
+      }
+    }, 0);
   }
 
   loadChannel() {
@@ -119,27 +144,5 @@ export class ViewChannelComponent implements OnInit {
     );
   }
 
-  incomingMessageStyle = {
-    'background-color': '#2D3748', // Equivalent to Tailwind's bg-gray-800
-    'color': '#FFFFFF',            // Tailwind's text-white
-    'padding': '0.75rem',          // Tailwind's p-3
-    'border-radius': '0.5rem',     // Tailwind's rounded-lg
-    'max-width': '24rem',          // Tailwind's max-w-xs
-    'margin-right': 'auto',        // Tailwind's mr-auto
-    'margin-left': '0',             // Ensure left margin is reset
-    'word-break': 'break-word'
-  };
-
-  outgoingMessageStyle = {
-    'background-color': '#3182CE', // Tailwind's bg-blue-600
-    'color': '#FFFFFF',            // Tailwind's text-white
-    'padding': '0.75rem',          // Tailwind's p-3
-    'border-radius': '0.5rem',     // Tailwind's rounded-lg
-    'max-width': '24rem',          // Tailwind's max-w-xs
-    'margin-left': 'auto',         // Tailwind's ml-auto
-    'margin-right': '0',           // Ensure right margin is reset
-    'word-break': 'break-word'
-
-  };
   
 }
