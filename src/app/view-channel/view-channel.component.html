@@ -23,17 +23,19 @@
 <div class="flex-grow overflow-y-auto p-4 messages-container">
   <div *ngFor="let message of messages" class="mb-2 flex flex-col">
 
-    <div class="flex items-start mb-4">
+    <div class="flex justify-start mb-4" [ngClass]="{'flex-row-reverse': message.incoming, 'items-start': !message.incoming}">
+      <div class="flex flex-col">
       <img
         [src]="message.sender.profilePictureRef ? message.sender.profilePictureRef : profilePictureUrl"
         alt="Profile Picture"
-        class="w-10 h-10 rounded-full mr-4"
+        class="w-10 h-10 rounded-full mr-2 ml-2"
         [ngStyle]="{
           'background-color': message.sender.profilePictureRef ? 'transparent' : '#3182CE'
         }"
       />
+      </div>
       <div class="flex flex-col">
-        <span class="text-sm text-gray-300 mb-1">{{ message.sender.username }}</span>
+        <span [ngClass]="{'self-end': message.incoming}" class="text-sm text-gray-300 mb-1">{{ message.sender.username }}</span>
     <div
     [ngStyle]="{
       'padding': message.messageType === 'text' ? '0.75rem' : '0',
@@ -52,7 +54,7 @@
         <img *ngSwitchCase="'image'" [src]="message.mediaRef" class="w-full" />
         <!-- Add more cases for other message types if needed -->
       </ng-container>
-      <div *ngIf="message.showTimestamp" class="text-xs text-gray-200 mt-1">
+      <div *ngIf="message.showTimestamp" [ngClass]="{'p-2': message.messageType !== 'text'}"class="text-xs text-gray-200 mt-1">
         {{ message.timestamp | date: 'short' }}
       </div>
     </div>
