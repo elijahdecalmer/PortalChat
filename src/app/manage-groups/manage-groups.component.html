@@ -1,7 +1,7 @@
 <div class="bg-gray-700 min-h-screen p-6">
     <h2 class="text-2xl font-bold text-white mb-4">Manage My Groups</h2>
     <h1 
-        *ngIf=[isSuperAdmin]
+        *ngIf="isSuperAdmin"
     class="text-base text-white mb-4">Accessing all groups as Super Admin</h1>
     <h1 
         *ngIf="isGroupAdmin"

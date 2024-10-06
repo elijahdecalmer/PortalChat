@@ -64,4 +64,9 @@ export class AdminServiceService {
       { headers: this.getHeaders() }
     );
   }
+
+  // Get my groups that I administrate
+  getMyGroups() {
+    return this.http.post(`${this.apiUrl}/myGroups`, {}, { headers: this.getHeaders() });
+  }
 }

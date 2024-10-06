@@ -69,17 +69,17 @@ export class ManageGroupsComponent implements OnInit {
 
 
 
-  loadGroups(): void {
-    this.groupService.getAllGroups().subscribe(
-      (response: any) => {
-        if (response.success) {
-          this.groups = response.groups;
-        } else {
-          console.error('Error loading groups:', response.message);
-        }
-      }
-    );
-  }
+  // loadGroups(): void {
+  //   this.groupService.getAllGroups().subscribe(
+  //     (response: any) => {
+  //       if (response.success) {
+  //         this.groups = response.groups;
+  //       } else {
+  //         console.error('Error loading groups:', response.message);
+  //       }
+  //     }
+  //   );
+  // }
 
     // Method to create a new group
     createGroup(): void {
@@ -250,6 +250,15 @@ export class ManageGroupsComponent implements OnInit {
       });
     }
 
-
+    // Get all groups that I administrate
+    loadGroups(): void {
+      this.adminService.getMyGroups().subscribe((response: any) => {
+        if (response.success) {
+          this.groups = response.groups;
+        } else {
+          console.error('Error getting my groups:', response.message);
+        }
+      });
+    }
 
 }
