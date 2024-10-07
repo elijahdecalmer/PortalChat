@@ -7,6 +7,8 @@ import { tap, timestamp } from 'rxjs/operators';
 import { ChannelServiceService } from '../services/channel-service.service';
 import { io, Socket } from 'socket.io-client';
 import { AuthService } from '../services/auth-service.service';
+import { PeerService } from '../services/peer.service';
+
 
 
 @Component({
@@ -29,7 +31,8 @@ export class ViewChannelComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private channelService: ChannelServiceService,
-    private authService: AuthService
+    private authService: AuthService,
+    private peerService: PeerService,
   ) {}
 
   ngOnInit() {
@@ -39,6 +42,9 @@ export class ViewChannelComponent implements OnInit, OnDestroy {
 
       // Initialize socket.io client
   this.socket = io('http://localhost:4000'); // Adjust the URL if needed
+
+      // Initialize peer service
+      this.initializePeerConnection();
 
   // Join the channel
   this.socket.emit('joinChannel', { channelId: this.channelId, userId: this.authService.getUser().id });
@@ -151,6 +157,29 @@ export class ViewChannelComponent implements OnInit, OnDestroy {
   }
   
   
-
+  async initializePeerConnection() {
+    try {
+      const userStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      
+      // Set the local video stream
+      const localVideoElement = document.querySelector('#localVideo') as HTMLVideoElement;
+      if (localVideoElement) {
+        localVideoElement.srcObject = userStream;
+      }
+  
+      // Broadcast this user's Peer ID to all other users in the channel
+      this.socket?.emit('peerConnected', { peerId: this.peerService.getPeerId(), channelId: this.channelId });
+  
+      // Call all other users in the channel (you might need to fetch other peer IDs from the server if not already present)
+      this.socket?.on('peerConnected', ({ peerId }) => {
+        if (peerId !== this.peerService.getPeerId()) {
+          this.peerService.makeCall(peerId, userStream);
+        }
+      });
+    } catch (error) {
+      console.error('Error initializing peer connection:', error);
+    }
+  }
+  
   
 }
