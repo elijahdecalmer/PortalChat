@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { GroupServiceService } from '../services/group-service.service';
+import { AuthService } from '../services/auth-service.service';
 
 @Component({
   selector: 'app-view-group',
@@ -17,7 +18,8 @@ export class ViewGroupComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private groupService: GroupServiceService
+    private groupService: GroupServiceService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -40,7 +42,12 @@ export class ViewGroupComponent implements OnInit {
   }
 
   leaveGroup() {
-    // Implement leave group functionality here
-    console.log('TODO Leaving group...');
+    this.groupService.leaveGroup(this.groupId).subscribe((response: any) => {
+      if (response.success) {
+        this.router.navigate(['/browsegroups']);
+        this.authService.refetchUser().subscribe((user) => {
+        });
+      }
+    });
   }
 }

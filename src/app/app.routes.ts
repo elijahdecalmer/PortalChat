@@ -8,6 +8,7 @@ import { RegisterComponent } from './register/register.component';
 import { authGuard } from './auth.guard';
 import { ManageUsersComponent } from './manage-users/manage-users.component';
 import { ManageGroupsComponent } from './manage-groups/manage-groups.component';
+import { ProfileComponent } from './profile/profile.component';
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent, canActivate: [authGuard] },
@@ -32,5 +33,9 @@ export const routes: Routes = [
   {
     path: 'managegroups',
     component: ManageGroupsComponent,
+  },
+  {
+    path: 'profile',
+    component: ProfileComponent,
   }
 ];
