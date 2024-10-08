@@ -6,6 +6,15 @@ Within a channel, users can chat over text, send videos, photos, and even audio 
 
 By clicking the **Video Chat** toggle in the top right of a channel, you can start a video chat with up to one other person in the channel.
 
+
+
+To RUN:
+
+clone repo
+npm install
+ng serve -o
+
+
 ## Structure of Client Side - Angular
 
 The client side is written entirely in Angular, with standalone modules. It is organized with services and components to ensure modularity and ease of maintenance.
