@@ -1,168 +1,87 @@
-Chat Application with Group and Channel Management
-Overview
-This project implements a chat application where users can create and join groups, manage channels, and exchange messages in real time. The solution is built using Angular for the frontend and Node.js/Express for the backend.
+# Welcome to Portal Chat
 
-Git Repository Organization
-Branchign was only used in the end stage to ensure that main would not be broken at submission point. If there were more than one developer, branches would be used constantly.
+Portal Chat allows users to be a part of groups (and the channels within those groups).
 
-Data Structures
-Server-side Data Structures
-User:
+Within a channel, users can chat over text, send videos, photos, and even audio clips like mp3s.
 
-username: string
-email: string
-password: string
-id: number
-roles: string[]
-reported: boolean
-groups: array of objects with id (number), name (string), and approved (boolean)
-Group:
+By clicking the **Video Chat** toggle in the top right of a channel, you can start a video chat with up to one other person in the channel.
 
-id: number
-name: string
-admin: string (username of the admin)
-members: string[] (array of usernames)
-pendingRequests: array of User objects
-bannedUsers: string[] (usernames of banned users)
-channels: array of channel objects
-Channel:
+## Structure of Client Side - Angular
 
-name: string
-messages: array of objects with from (string), message (string), and timestamp (string)
-Client-side Data Structures (Angular)
-User:
+The client side is written entirely in Angular, with standalone modules. It is organized with services and components to ensure modularity and ease of maintenance.
 
-username: string
-email: string
-groups: array of group objects
-id: number
-roles: string[]
-reported: boolean
-Group:
+The application uses **Tailwind CSS** for styling to facilitate rapid development and maintain a clean, consistent codebase.
 
-id: number
-name: string
-admin: string
-members: array of User objects
-pendingRequests: array of User objects
-channels: array of channel objects
-Channel:
+### Project Folder Structure
 
-name: string
-messages: array of message objects
-Message:
+Below is an overview of the key components of the application, organized by feature and functionality:
 
-text: string
-timestamp: string
-incoming: boolean
-showTimestamp: boolean
-Angular Architecture
-Components:
+- **browse-groups**: Contains components for browsing and discovering groups.
+- **home**: Handles the home page of the application.
+- **login**: Manages user authentication and login functionality.
+- **manage-groups**: Includes components for creating and managing groups.
+- **manage-users**: Handles user management operations, such as viewing and editing user profiles.
+- **pipes**: Contains custom pipes used throughout the application.
+- **register**: Manages user registration functionality.
+- **services**: Includes all the Angular services for handling data and business logic.
+- **view-channel**: Displays channel-specific content and chat interfaces.
+- **view-group**: Displays group details and member information.
 
-app.component.ts
-Purpose: The root component of the application. It serves as the base for the entire application, rendering the main layout and containing router outlets for navigating between different views.
-Template: app.component.html is the main container for all the dynamic content, where the router outlet injects other components as the user navigates.
-Styles: app.component.css provides global styles for the layout.
-browse-groups.component.ts
-Purpose: Handles the display of all available groups that a user can browse, request access to, or create if they have the appropriate permissions.
-Key Features:
-Displays the list of available groups.
-Allows users to request access to groups.
-Provides functionality for Group Admin and Super Admin to create new groups.
-The component interacts with the AuthService to fetch groups and manage access.
-Template: browse-groups.component.html contains the layout for group browsing, displaying the group name, user count, and action buttons for requesting access or creating a new group.
-home.component.ts
-Purpose: Serves as the landing page for the application after login. Provides a brief overview and links to other parts of the app like group browsing, user management, etc.
-Template: home.component.html defines the main layout for the home screen, which could include navigation links and introductory content.
-login.component.ts
-Purpose: Manages the user authentication (login) process.
-Key Features:
-Accepts username and password inputs.
-Authenticates the user using the AuthService.
-On successful login, navigates to the home page or the last visited page.
-Template: login.component.html provides the user interface for logging in, including input fields and login buttons.
-manage-users.component.ts
-Purpose: Provides functionality for managing users within groups, such as promoting them to group admin, approving access requests, and removing users from groups.
-Key Features:
-Displays a list of all users (for Super Admin).
-Allows actions like promoting users, removing users from groups, banning users, and approving pending requests.
-Interacts with the AuthService to execute these actions.
-Template: manage-users.component.html contains the layout for managing users, including lists of users, action buttons for each user, and group-related management features.
-register.component.ts
-Purpose: Handles user registration for the application.
-Key Features:
-Accepts new user details such as username, email, and password.
-Sends registration requests to the server via the AuthService.
-Displays error messages if registration fails (e.g., username already exists).
-Template: register.component.html contains the form for user registration.
-view-channel.component.ts
-Purpose: Displays a specific channel within a group and manages the exchange of messages in real time.
-Key Features:
-Shows a list of all messages within the channel.
-Allows users to send new messages.
-Timestamps and message direction (incoming/outgoing) are displayed for each message.
-Interacts with the AuthService to send and receive messages.
-Template: view-channel.component.html defines the layout for the message list, the message input field, and the send button.
-view-group.component.ts
-Purpose: Displays details about a specific group, including its channels and members.
-Key Features:
-Lists all channels within the group.
-Allows navigation to individual channels.
-Displays group information, such as the admin and members.
-Provides actions like leaving the group or managing channels (for Group Admin or Super Admin).
-Template: view-group.component.html contains the layout for displaying group details, including a list of channels and a list of members.
+### Services Overview
 
-Services:
+The application includes four primary services, each corresponding to a major data structure and functionality grouping. These services are tightly integrated with the REST API, handling data operations and communication with the backend.
 
-AuthService: Handles user authentication, group access, messaging, and general API communication.
-Routes:
+| Service Name        | Purpose                                                                                      |
+|---------------------|----------------------------------------------------------------------------------------------|
+| Admin Service       | Handles all admin-related operations like promoting users to admin roles, deleting users, and managing group memberships. It also allows the reporting of users to super admins. |
+| Auth Service        | Manages user authentication, including registration, login, session management, and logout. It also handles account deletion and session validation.                              |
+| Channel Service     | Facilitates operations related to channels within groups, such as creating channels, managing users, uploading files, and retrieving channel details.                            |
+| Group Service       | Manages group-related functionalities like creating groups, handling membership requests, managing user access, and retrieving group details.                                   |
 
-/browsegroups: Displays available groups.
-/viewgroup/:groupid: Displays group details, including channels.
-/viewchannel/:groupid/:channelid: Displays messages and allows message exchange in a channel.
-Node Server Architecture
-Modules: Express.js is used for the HTTP server and routing. CORS is used for handling cross-origin requests.
+### Detailed Breakdown of Services
 
-Global Variables:
+#### Admin Service
 
-users: Stores user data.
-groups: Stores group and channel data.
-Functions:
+The Admin Service handles all admin-related actions for the application:
 
-findUserById(userId): Finds a user by their id.
-findGroupById(groupId): Finds a group by its id.
-isUserAdminOfGroup(user, group): Checks if a user is the admin of a group.
-Files:
+- Promoting users to group or super admin roles.
+- Deleting users.
+- Reporting users to super admins.
+- Retrieving groups administered by the logged-in user.
+- Managing users' roles within groups.
 
-server.js: Contains all the server logic, including routes for authentication, messaging, and group management.
-List of Server-side Routes
-POST /api/auth: Authenticates a user.
+#### Auth Service
 
-Parameters: username, password
-Returns: User object upon successful login.
-POST /api/groups/create: Creates a new group.
+The Auth Service is responsible for authentication and session management:
 
-Parameters: userId, groupName
-Returns: Newly created group.
-POST /api/groups/:groupId/approveUser: Approves a user to join a group.
+- **Register:** Handles the registration of new users.
+- **Login:** Authenticates users and manages their session.
+- **Refetch User:** Fetches the latest user data to keep the session updated.
+- **Logout:** Clears the user session and navigates to the login page.
+- **Delete Account:** Deletes the user account and ends the session.
+- **Session Management:** Uses `BehaviorSubject` to manage the user session state across the application.
 
-Parameters: groupId, userId
-Returns: Updated group with the user added.
-POST /api/groups/:groupId/channels/:channelId/message: Sends a message in a channel.
+#### Channel Service
 
-Parameters: groupId, channelId, userId, message
-Returns: Sent message.
-Interaction Between Client and Server
-Authentication:
+The Channel Service handles channel operations within groups:
 
-The user logs in via the /api/auth endpoint. The authenticated user is stored in session storage on the client side.
-Group Management:
+- **Create Channel:** Allows creating new channels within a specified group.
+- **Delete Channel:** Deletes a specified channel from a group.
+- **Ban User:** Bans a user from a specific channel.
+- **Upload Files:** Handles file uploads within channels.
+- **Get Channel Details:** Retrieves detailed information about a specific channel.
 
-Users with Super Admin or Group Admin roles can create groups via the /api/groups/create endpoint. This request is initiated from the BrowseGroupsComponent on the frontend.
-Messaging:
+#### Group Service
 
-Messages sent via the ViewChannelComponent are transmitted to the server using the /api/groups/:groupId/channels/:channelId/message endpoint. Upon successful message delivery, the UI is updated by adding the message to the message list in real time.
-Angular Component Display Updates
-After Group Creation: The BrowseGroupsComponent will call the getGroups() method from AuthService, which fetches the updated list of groups from the server.
+The Group Service manages group-related functionalities:
 
-After Sending a Message: In ViewChannelComponent, after sending a message, the message array is updated locally, and the new message is displayed immediately in the UI.
+- **Get All Groups:** Retrieves all groups available to the user.
+- **Create Group:** Allows users to create new groups with specified details.
+- **Manage Membership:** Handles user requests to join groups, approves or rejects members, and manages the removal of users from groups.
+- **Ban User from Channel:** Manages banning of users from channels within groups.
+- **Leave Group:** Enables users to leave a group.
+- **Get Group Details:** Provides detailed information about a specified group.
+
+### Conclusion
+
+The Angular client side is structured to communicate seamlessly with the backend REST API through these services. Each service is focused on a specific aspect of the application's functionality, ensuring that the codebase remains modular, organized, and easy to maintain. The use of **Tailwind CSS** enhances development speed and code readability, keeping the design clean and responsive.
