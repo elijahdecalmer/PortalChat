@@ -25,6 +25,8 @@ export class ViewChannelComponent implements OnInit, OnDestroy {
   channel: any = {};
   socket: Socket | null = null;
   profilePictureUrl: string = 'http://localhost:4000/uploads/media/default.png';
+  videoChatEnabled: boolean = false;
+  remoteVideoActive: boolean = false;
 
 
   constructor(
@@ -36,33 +38,34 @@ export class ViewChannelComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.groupId = this.route.snapshot.paramMap.get('groupid') || '';
-    this.channelId = this.route.snapshot.paramMap.get('channelid') || '';
-    this.loadChannel()
+      this.groupId = this.route.snapshot.paramMap.get('groupid') || '';
+      this.channelId = this.route.snapshot.paramMap.get('channelid') || '';
+      this.loadChannel()
 
       // Initialize socket.io client
-  this.socket = io('http://localhost:4000'); // Adjust the URL if needed
+      this.socket = io('http://localhost:4000'); // Adjust the URL if needed
 
-      // Initialize peer service
-      this.initializePeerConnection();
 
-  // Join the channel
-  this.socket.emit('joinChannel', { channelId: this.channelId, userId: this.authService.getUser().id });
+      // Join the channel
+      this.socket.emit('joinChannel', { channelId: this.channelId, userId: this.authService.getUser().id });
 
-  // Listen for previous messages
-  this.socket.on('previousMessages', (messages: any[]) => {
-    this.messages = messages.map(message => {
-      console.log("Message type: ", message.messageType);
-      if (message.messageType !== 'text') {
-        message.mediaRef = 'http://localhost:4000' + message.mediaRef;
-      }
-      return {
-        ...message,
-        incoming: message.sender._id !== this.authService.getUser()._id
-      };
-    });
-    this.scrollToBottom();
+      // Listen for previous messages
+      this.socket.on('previousMessages', (messages: any[]) => {
+        this.messages = messages.map(message => {
+          console.log("Message type: ", message.messageType);
+          if (message.messageType !== 'text') {
+            message.mediaRef = 'http://localhost:4000' + message.mediaRef;
+          }
+          return {
+            ...message,
+            incoming: message.sender._id !== this.authService.getUser()._id
+          };
+        });
+        this.scrollToBottom();
   });
+
+  
+  
 
   // Listen for new messages
   this.socket.on('newMessage', (message: any) => {
@@ -73,19 +76,83 @@ export class ViewChannelComponent implements OnInit, OnDestroy {
     this.messages.push(message);
     this.scrollToBottom();
   });
-
-
-  // Handle socket disconnect and navigate to viewgroup
-  this.socket.on('disconnect', () => {
-    this.router.navigate([`/viewgroup`, this.groupId]);
-  });
   }
 
+  getProfileUrl(suffix: string){
+    return `http://localhost:4000${suffix}`;
+  }
+  
+
   ngOnDestroy() {
-    // Disconnect socket when component is destroyed
+    // Disconnect socket and close peer connection when component is destroyed
     if (this.socket) {
       this.socket.disconnect();
     }
+    if (this.videoChatEnabled) {
+      this.closePeerConnection();
+    }
+  }
+  toggleVideoChat() {
+    if (this.videoChatEnabled) {
+      // Initialize peer connection
+      this.initializePeerConnection();
+    } else {
+      // Close peer connection
+      this.closePeerConnection();
+    }
+  }
+
+  async initializePeerConnection() {
+    try {
+      const userStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      
+      // Set the local video stream
+      const localVideoElement = document.querySelector('#localVideo') as HTMLVideoElement;
+      if (localVideoElement) {
+        localVideoElement.srcObject = userStream;
+      }
+
+      // Broadcast this user's Peer ID to all other users in the channel
+      this.socket?.emit('peerConnected', { peerId: this.peerService.getPeerId(), channelId: this.channelId });
+
+      // Listen for other peers connecting
+      this.socket?.on('peerConnected', ({ peerId }) => {
+        if (peerId !== this.peerService.getPeerId()) {
+          this.peerService.makeCall(peerId, userStream);
+        }
+      });
+
+      // Subscribe to remote stream received
+      this.peerService.onRemoteStreamReceived.subscribe((stream: MediaStream) => {
+        this.remoteVideoActive = true;
+      });
+
+    } catch (error) {
+      console.error('Error initializing peer connection:', error);
+    }
+  }
+
+  closePeerConnection() {
+    // Close peer connection
+    this.peerService.destroyPeer();
+
+    // Stop local video stream
+    const localVideoElement = document.querySelector('#localVideo') as HTMLVideoElement;
+    if (localVideoElement && localVideoElement.srcObject) {
+      const tracks = (localVideoElement.srcObject as MediaStream).getTracks();
+      tracks.forEach(track => track.stop());
+      localVideoElement.srcObject = null;
+    }
+
+    // Stop remote video stream
+    const remoteVideoElement = document.querySelector('#remoteVideo') as HTMLVideoElement;
+    if (remoteVideoElement && remoteVideoElement.srcObject) {
+      const tracks = (remoteVideoElement.srcObject as MediaStream).getTracks();
+      tracks.forEach(track => track.stop());
+      remoteVideoElement.srcObject = null;
+    }
+
+    this.remoteVideoActive = false;
   }
 
   // Scroll to the bottom of the messages container
@@ -157,29 +224,6 @@ export class ViewChannelComponent implements OnInit, OnDestroy {
   }
   
   
-  async initializePeerConnection() {
-    try {
-      const userStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      
-      // Set the local video stream
-      const localVideoElement = document.querySelector('#localVideo') as HTMLVideoElement;
-      if (localVideoElement) {
-        localVideoElement.srcObject = userStream;
-      }
-  
-      // Broadcast this user's Peer ID to all other users in the channel
-      this.socket?.emit('peerConnected', { peerId: this.peerService.getPeerId(), channelId: this.channelId });
-  
-      // Call all other users in the channel (you might need to fetch other peer IDs from the server if not already present)
-      this.socket?.on('peerConnected', ({ peerId }) => {
-        if (peerId !== this.peerService.getPeerId()) {
-          this.peerService.makeCall(peerId, userStream);
-        }
-      });
-    } catch (error) {
-      console.error('Error initializing peer connection:', error);
-    }
-  }
-  
+
   
 }

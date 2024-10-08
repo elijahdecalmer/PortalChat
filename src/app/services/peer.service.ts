@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import Peer from 'peerjs';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -7,6 +8,7 @@ import Peer from 'peerjs';
 export class PeerService {
   private peer: Peer;
   private peerId: string | null = null;
+  public onRemoteStreamReceived: Subject<MediaStream> = new Subject<MediaStream>();
 
   constructor() {
     this.peer = new Peer({
@@ -27,6 +29,7 @@ export class PeerService {
           call.answer(stream); // Answer the call with our stream
           call.on('stream', (remoteStream) => {
             this.handleRemoteStream(remoteStream);
+            this.onRemoteStreamReceived.next(remoteStream);
           });
         })
         .catch(err => console.error('Failed to get local stream', err));
@@ -37,6 +40,7 @@ export class PeerService {
     const call = this.peer.call(peerId, stream);
     call.on('stream', (remoteStream) => {
       this.handleRemoteStream(remoteStream);
+      this.onRemoteStreamReceived.next(remoteStream);
     });
   }
 
@@ -46,8 +50,17 @@ export class PeerService {
       remoteVideoElement.srcObject = stream;
     }
   }
-  
+
   getPeerId() {
     return this.peerId;
+  }
+
+  destroyPeer() {
+    if (this.peer) {
+      this.peer.disconnect();
+      this.peer.destroy();
+      this.peerId = null;
+      this.onRemoteStreamReceived.complete();
+    }
   }
 }
