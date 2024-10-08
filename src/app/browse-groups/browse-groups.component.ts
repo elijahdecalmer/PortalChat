@@ -45,9 +45,6 @@ export class BrowseGroupsComponent implements OnInit {
         } else {
           console.error('Error loading groups:', response.message);
         }
-      },
-      (error) => {
-        console.error('Error loading groups:', error);
       }
     );
   }
@@ -75,6 +72,9 @@ export class BrowseGroupsComponent implements OnInit {
         if (response.success) {
           console.log('Request to join group sent successfully');
           this.loadGroups(); // Reload groups to reflect the pending request
+          this.authService.refetchUser().subscribe((user) => {
+          
+          });
         } else {
           console.error('Error sending request:', response.message);
         }

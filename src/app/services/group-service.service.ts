@@ -91,4 +91,13 @@ export class GroupServiceService {
     );
   }
 
+  // Leave a group
+  leaveGroup(groupId: string) {
+    return this.http.post(
+      `${this.apiUrl}/leaveGroup`,
+      { groupId },
+      { headers: this.getHeaders() }
+    );
+  }
+
 }
