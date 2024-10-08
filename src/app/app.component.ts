@@ -70,6 +70,10 @@ export class AppComponent implements OnInit {
       });
   }
 
+  goToProfile() {
+    this.router.navigate(['/profile']);
+  }
+
   openSidebar() {
     this.isSidebarOpen = true;
   }

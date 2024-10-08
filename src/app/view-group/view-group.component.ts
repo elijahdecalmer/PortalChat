@@ -46,7 +46,6 @@ export class ViewGroupComponent implements OnInit {
       if (response.success) {
         this.router.navigate(['/browsegroups']);
         this.authService.refetchUser().subscribe((user) => {
-    
         });
       }
     });

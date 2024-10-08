@@ -91,7 +91,8 @@ export class GroupServiceService {
     );
   }
 
-  // Leave a group
+
+  // leave a group
   leaveGroup(groupId: string) {
     return this.http.post(
       `${this.apiUrl}/leaveGroup`,
